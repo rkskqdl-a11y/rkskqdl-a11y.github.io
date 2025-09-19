@@ -4,10 +4,10 @@
 >
   <url>
     <loc>https://rkskqdl-a11y.github.io/</loc>
-    <lastmod>2025-09-19</lastmod> <!-- 현재 날짜로 변경해서 넣는 게 좋음 -->
+    <lastmod>2025-09-19</lastmod> <!-- <<<< 여기 날짜를 오늘 날짜로 업데이트! -->
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
-  <!-- 나중에 여기에 너의 새로운 제품 페이지 URL들이 추가될 거야.
-       지금은 루트 페이지 하나만 넣어두는 걸로 깔끔하게 시작하자! -->
+  <!-- 여기에 앞으로 발행할 새로운 제품 페이지 URL들이 추가될 거야.
+       지금은 네 메인 웹사이트 주소 하나만 넣어두는 걸로 깔끔하게 시작하자! -->
 </urlset>
