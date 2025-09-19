@@ -1,20 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-
-  <!-- yourshop 프로젝트 메인 -->
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+>
   <url>
-    <loc>https://rkskqdl-a11y.github.io/yourshop/</loc>
-    <lastmod>2025-09-19</lastmod>
+    <loc>https://rkskqdl-a11y.github.io/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
-
-  <!-- yourshop 안 페이지 예시 -->
+  <!-- 예: 매일 발행하는 상품 페이지들 URL을 아래에 30개 추가 -->
   <url>
-    <loc>https://rkskqdl-a11y.github.io/yourshop/page1.html</loc>
-    <lastmod>2025-09-19</lastmod>
-    <changefreq>weekly</changefreq>
+    <loc>https://rkskqdl-a11y.github.io/product1.html</loc>
+    <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
-
+  <url>
+    <loc>https://rkskqdl-a11y.github.io/product2.html</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- 여기에 실제 발행할 페이지 URL을 계속 추가해줘 -->
 </urlset>
