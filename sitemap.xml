@@ -4,19 +4,10 @@
 >
   <url>
     <loc>https://rkskqdl-a11y.github.io/</loc>
+    <lastmod>2025-09-19</lastmod> <!-- 현재 날짜로 변경해서 넣는 게 좋음 -->
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
-  <!-- 예: 매일 발행하는 상품 페이지들 URL을 아래에 30개 추가 -->
-  <url>
-    <loc>https://rkskqdl-a11y.github.io/product1.html</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://rkskqdl-a11y.github.io/product2.html</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <!-- 여기에 실제 발행할 페이지 URL을 계속 추가해줘 -->
+  <!-- 나중에 여기에 너의 새로운 제품 페이지 URL들이 추가될 거야.
+       지금은 루트 페이지 하나만 넣어두는 걸로 깔끔하게 시작하자! -->
 </urlset>
