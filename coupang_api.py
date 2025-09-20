@@ -4,7 +4,7 @@ import hmac
 import hashlib
 import json
 from time import gmtime, strftime
-import random # <<<<<<<<<< 여기 import random 추가됐음!
+import random 
 
 # 쿠팡 API 키는 깃허브 Secrets에서 가져옴
 ACCESS_KEY = os.environ.get('COUPANG_ACCESS_KEY')
@@ -14,15 +14,19 @@ if not ACCESS_KEY or not SECRET_KEY:
     print("Error: COUPANG_ACCESS_KEY or COUPANG_SECRET_KEY not found in environment variables.")
     raise ValueError("Missing Coupang API keys. Please set COUPANG_ACCESS_KEY and COUPANG_SECRET_KEY in GitHub Secrets.")
 
-DOMAIN = "https://api-gateway.coupang.com"
+# 파트너스 API의 기본 도메인은 이걸로 고정
+DOMAIN = "https://api-gateway.coupang.com" 
 
+# HMAC 시그니처 생성 함수 - 파트너스 API 규칙 (DeepLink와 Product Search 모두 동일)
 def generate_hmac_signature(method, url, secret_key, access_key):
     path, *query = url.split("?")
+    
     datetime_gmt = strftime('%y%m%d', gmtime()) + 'T' + strftime('%H%M%S', gmtime()) + 'Z'
     
     message_content = path
     if query:
-        message_content += query[0]
+        # 쿼리가 있다면 ?와 함께 path에 붙임
+        message_content += "?" + query[0]
 
     message = datetime_gmt + method + message_content
     
@@ -32,11 +36,13 @@ def generate_hmac_signature(method, url, secret_key, access_key):
 
     return "CEA algorithm=HmacSHA256, access-key={}, signed-date={}, signature={}".format(access_key, datetime_gmt, signature)
 
+
+# 쿠팡 파트너스 API 호출 함수 (모든 파트너스 API 요청에 사용)
 def call_coupang_partners_api(method, url, payload=None):
     authorization = generate_hmac_signature(method, url, SECRET_KEY, ACCESS_KEY)
     headers = {
         "Authorization": authorization,
-        "Content-Type": "application/json"
+        "Content-Type": "application/json" if payload else "application/x-www-form-urlencoded" # payload 있으면 json, 없으면 form
     }
 
     full_url = f"{DOMAIN}{url}"
@@ -46,13 +52,25 @@ def call_coupang_partners_api(method, url, payload=None):
     elif method == "POST":
         response = requests.post(full_url, headers=headers, data=json.dumps(payload) if payload else None)
     
-    response.raise_for_status() # 오류 발생 시 예외 발생
+    response.raise_for_status() # HTTP 4xx, 5xx 에러 발생 시 예외 throw
     return response.json()
 
-# -------- 상품 검색 API 호출 함수 --------
-def search_products(keyword, page=1, limit=10): # 검색어와 가져올 상품 개수(limit) 설정
-    url = f"/v2/providers/affiliate_open_api/apis/openapi/products/search?keyword={keyword}&limit={limit}&offset={(page-1)*limit}"
-    return call_coupang_partners_api("GET", url)
+# 상품 검색 API 호출 함수 (오직 파트너스 API에서 상품 검색에 사용!)
+def search_products(keyword, page=1, limit=50): # limit 기본값 50으로 올림 (API 최대 50개)
+    # 파트너스 API 상품 검색 엔드포인트!
+    url_path = f"/v2/providers/affiliate_open_api/apis/openapi/products/search"
+    # 쿼리 파라미터는 따로 전달
+    params = {
+        "keyword": keyword,
+        "limit": limit,
+        "offset": (page - 1) * limit
+    }
+    # 쿼리 스트링 만들기
+    query_string = "&".join([f"{k}={v}" for k, v in params.items()])
+    
+    full_url_with_query = f"{url_path}?{query_string}"
+    
+    return call_coupang_partners_api("GET", full_url_with_query)
 
 
 # 메인 함수: 실제 상품 검색 후 딥링크 생성까지
@@ -99,13 +117,15 @@ if __name__ == "__main__":
         # 검색 결과가 있는지 확인
         if not search_results or not search_results.get('data'):
             print(f"'{SEARCH_KEYWORD}' 검색 결과 없음.")
-            exit()
+            # 오류는 아니지만, 상품이 없으면 종료
+            exit(0) # 성공적으로 종료 (상품 없음)
 
         product_urls_to_deeplink = []
         print("\n--- 검색된 상품 정보 ---")
         for item in search_results['data']:
             product_name = item.get('productName', '이름 없음')
-            product_url = item.get('productUrl')
+            # 파트너스 API 상품 검색 결과에서는 'productUrl' 필드를 직접 제공함
+            product_url = item.get('productUrl') 
             if product_url:
                 print(f"상품명: {product_name}, URL: {product_url}")
                 product_urls_to_deeplink.append(product_url)
@@ -114,7 +134,7 @@ if __name__ == "__main__":
 
         if not product_urls_to_deeplink:
             print("딥링크를 생성할 상품 URL이 없습니다.")
-            exit()
+            exit(0) # 성공적으로 종료 (URL 없음)
 
         # 검색된 상품 URL들로 딥링크 생성 요청
         deeplink_request_payload = { 
@@ -135,7 +155,11 @@ if __name__ == "__main__":
                 print(f"원본 URL: {original_url}")
                 print(f"파트너스 URL: {shorten_url}\n")
         else:
-            print("딥링크 생성에 실패했습니다.")
+            print("딥링크 생성에 실패했습니다. 응답 데이터가 유효하지 않습니다.")
 
+    except requests.exceptions.HTTPError as http_err:
+        print(f"HTTP 오류 발생: {http_err.response.status_code} - {http_err.response.text}")
+        raise # 깃허브 액션 실패로 알리기 위해 다시 예외 발생
     except Exception as e:
-        print(f"API 호출 중 오류 발생: {e}")
+        print(f"API 호출 중 예기치 않은 오류 발생: {e}")
+        raise # 깃허브 액션 실패로 알리기 위해 다시 예외 발생
