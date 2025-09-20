@@ -8,6 +8,8 @@ import random
 from urllib.parse import urlencode, quote_plus
 import re
 import sys
+import xml.etree.ElementTree as ET # XML 파싱용
+from datetime import datetime
 
 # 쿠팡 API 키 환경변수에서 불러옴 (GitHub Secrets에 설정!)
 ACCESS_KEY = os.environ.get('COUPANG_ACCESS_KEY')
@@ -17,6 +19,10 @@ if not ACCESS_KEY or not SECRET_KEY:
     raise ValueError("COUPANG_ACCESS_KEY와 COUPANG_SECRET_KEY를 GitHub Secrets에 꼭 설정해라!")
 
 DOMAIN = "https://api-gateway.coupang.com"
+
+# 사이트맵 관련 설정
+SITEMAP_PATH = 'sitemap.xml'
+SITE_BASE_URL = 'https://rkskqdl-a11y.github.io/' # 너의 깃허브 페이지 기본 URL
 
 # HMAC 서명 생성 함수
 def generate_hmac(method, url_for_hmac, secret_key, access_key):
@@ -57,8 +63,7 @@ def create_html(product):
     category = product.get('categoryName', '정보 없음')
     rank = product.get('rank', 'N/A')
     
-    # '실구매후기' 버튼이 들어가므로, 배송 정보, 후기 개수는 이제 HTML에 직접 표시하지 않음
-    # (하지만 API 데이터로는 여전히 가져오고 있으니 나중에 다른 정보 넣고 싶으면 활용 가능)
+    # 배송 정보와 후기 개수는 이제 HTML에 직접 표시하지 않음 (요청 반영)
 
     # 파일명으로 사용할 수 없는 문자 제거 및 공백 대체
     safe_name = re.sub(r'[\\/*?:"<>|]', '', name).replace(' ', '_')[:50].strip('_')
@@ -196,9 +201,54 @@ def create_html(product):
         f.write(html_content)
     return filename
 
-# 메인 실행 로직
+# --- 사이트맵 자동 업데이트 관련 함수들 ---
+def load_sitemap():
+    try:
+        tree = ET.parse(SITEMAP_PATH)
+        root = tree.getroot()
+    except FileNotFoundError:
+        # 파일 없으면 새롭게 생성
+        root = ET.Element('urlset', xmlns="http://www.sitemaps.org/schemas/sitemap/0.9")
+        tree = ET.ElementTree(root)
+    return tree, root
+
+def url_exists_in_sitemap(root_element, target_url):
+    # XML 네임스페이스를 고려하여 정확하게 탐색
+    for url_elem in root_element.findall('{http://www.sitemaps.org/schemas/sitemap/0.9}url'):
+        loc_elem = url_elem.find('{http://www.sitemaps.org/schemas/sitemap/0.9}loc')
+        if loc_elem is not None and loc_elem.text == target_url:
+            return True
+    return False
+
+def add_url_to_sitemap(root_element, filename):
+    full_url = SITE_BASE_URL + filename # 기본 URL에 파일명 붙여서 완성
+    
+    if url_exists_in_sitemap(root_element, full_url):
+        return False  # 이미 사이트맵에 있으면 추가 안 함
+    
+    url_elem = ET.SubElement(root_element, 'url')
+    
+    loc = ET.SubElement(url_elem, 'loc')
+    loc.text = full_url
+    
+    lastmod = ET.SubElement(url_elem, 'lastmod')
+    lastmod.text = datetime.now().strftime('%Y-%m-%d') # 오늘 날짜로 업데이트
+    
+    changefreq = ET.SubElement(url_elem, 'changefreq')
+    changefreq.text = 'daily' # 매일 바뀔 수 있다고 알림
+    
+    priority = ET.SubElement(url_elem, 'priority')
+    priority.text = '0.8' # 우선순위 (메인 페이지보다 낮게)
+    
+    return True # 새로 추가했으면 True 반환
+
+def save_sitemap(tree_element):
+    # UTF-8 인코딩으로 XML 선언 포함하여 저장 (파일 손상 방지)
+    tree_element.write(SITEMAP_PATH, encoding='utf-8', xml_declaration=True)
+
+# --- 메인 실행 로직 ---
 if __name__ == "__main__":
-    SEARCH_KEYWORDS_LIST = [ # 네가 준 길고 긴 키워드 리스트! (줄임)
+    SEARCH_KEYWORDS_LIST = [ # 네가 준 길고 긴 키워드 리스트!
         "노트북", "캠핑용품", "아이폰15", "무선 이어폰", "게이밍 마우스",
         "에어프라이어", "로봇청소기", "캡슐커피머신", "전기 주전자", "토스터기",
         "믹서기", "제습기", "가습기", "선풍기", "에어컨", "온수매트",
@@ -231,6 +281,8 @@ if __name__ == "__main__":
     
     all_products_to_generate = [] # 수집된 모든 상품을 저장할 리스트
     keywords_attempted_set = set() # 이미 시도한 키워드를 저장하여 중복 방지
+    
+    generated_html_filenames = [] # 새로 생성된 HTML 파일명들을 저장할 리스트
 
     # 목표 개수만큼 상품을 모을 때까지 반복
     while len(all_products_to_generate) < TOTAL_PRODUCTS_TO_GENERATE and \
@@ -252,11 +304,6 @@ if __name__ == "__main__":
             
             try:
                 search_results = search_products(selected_keyword, page=page_num, limit=API_CALL_LIMIT_PER_PAGE)
-                
-                # Debug 로그 (필요시 주석 해제해서 API 응답 확인 가능)
-                # print(f"\n--- API 응답 (DEBUG) - 키워드: '{selected_keyword}' (페이지 {page_num}) ---")
-                # print(json.dumps(search_results, indent=4, ensure_ascii=False))
-                # print("-----------------------------------------------------------------------\n")
                 
                 products_on_current_page = search_results.get('data', {}).get('productData', [])
                 
@@ -290,15 +337,25 @@ if __name__ == "__main__":
         print("최대 시도 후에도 상품 데이터를 하나도 확보하지 못했습니다. 키워드, API 키, 네트워크 상태 등을 확인하세요.", file=sys.stderr)
         sys.exit(1) # 상품이 하나도 없으면 스크립트 종료
 
-    print(f"\n총 {len(all_products_to_generate)}개 상품으로 HTML 파일 생성 중...")
+    print(f"\n--- 총 {len(all_products_to_generate)}개 상품으로 HTML 파일 생성 및 사이트맵 업데이트 중 ---")
     generated_html_files_count = 0
     for product_data in all_products_to_generate:
         try:
             created_filename = create_html(product_data)
             print(f"-> '{created_filename}' 생성 완료")
+            generated_html_filenames.append(created_filename) # 생성된 파일명 리스트에 추가
             generated_html_files_count += 1
         except Exception as e:
             print(f"HTML 파일 생성 실패 (상품: {product_data.get('productName', '불명')}) : {e}", file=sys.stderr)
+
+    # --- 사이트맵 업데이트 실행 ---
+    sitemap_tree, sitemap_root = load_sitemap()
+    sitemap_added_count = 0
+    for fname in generated_html_filenames:
+        if add_url_to_sitemap(sitemap_root, fname):
+            sitemap_added_count += 1
+    save_sitemap(sitemap_tree)
+    print(f"\n[사이트맵] 새로 추가된 URL {sitemap_added_count}개 반영 완료!")
 
     print(f"\n총 {generated_html_files_count}개의 HTML 파일이 성공적으로 생성되었습니다.")
     print("이제 GitHub Actions 워크플로우를 실행하여 웹사이트에 반영하세요! 🎉")
