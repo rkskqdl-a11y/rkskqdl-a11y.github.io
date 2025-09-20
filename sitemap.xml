@@ -1,17 +1,15 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset
-  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
->
-  <url>
-    <loc>https://rkskqdl-a11y.github.io/</loc>
-    <lastmod>2025-09-20</lastmod> <!-- <<<< 오늘 날짜로 바꿨어! -->
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>https://rkskqdl-a11y.github.io/product-01.html</loc>
-    <lastmod>2025-09-20</lastmod> <!-- <<<< 오늘 날짜로 바꿨어! -->
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-</urlset>
+<?xml version='1.0' encoding='utf-8'?>
+<ns0:urlset xmlns:ns0="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <ns0:url>
+    <ns0:loc>https://rkskqdl-a11y.github.io/</ns0:loc>
+    <ns0:lastmod>2025-09-20</ns0:lastmod> 
+    <ns0:changefreq>daily</ns0:changefreq>
+    <ns0:priority>1.0</ns0:priority>
+  </ns0:url>
+  <ns0:url>
+    <ns0:loc>https://rkskqdl-a11y.github.io/product-01.html</ns0:loc>
+    <ns0:lastmod>2025-09-20</ns0:lastmod> 
+    <ns0:changefreq>daily</ns0:changefreq>
+    <ns0:priority>0.8</ns0:priority>
+  </ns0:url>
+<url><loc>https://rkskqdl-a11y.github.io/지크_SK엔무브_X8_엔진오일.html</loc><lastmod>2025-09-20</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url><url><loc>https://rkskqdl-a11y.github.io/지크_X8_가솔린_LPG_엔진오일.html</loc><lastmod>2025-09-20</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url><url><loc>https://rkskqdl-a11y.github.io/지크_X8_가솔린_LPG_엔진오일.html</loc><lastmod>2025-09-20</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url><url><loc>https://rkskqdl-a11y.github.io/킥스_G_SN_합성_가솔린_엔진오일.html</loc><lastmod>2025-09-20</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url><url><loc>https://rkskqdl-a11y.github.io/지크_X10_LS_가솔린_엔진오일.html</loc><lastmod>2025-09-20</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url><url><loc>https://rkskqdl-a11y.github.io/지크_X8_가솔린_LPG_엔진오일.html</loc><lastmod>2025-09-20</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url><url><loc>https://rkskqdl-a11y.github.io/[킥스]_그랜저GN7_하이브리드_엔진오일+에어크리너+오일필터_세트.html</loc><lastmod>2025-09-20</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url><url><loc>https://rkskqdl-a11y.github.io/[킥스파오_KIXX_PAO_C2C3_5W30]_싼타페DM_디젤_합성엔진오일_필터_패키지_세.html</loc><lastmod>2025-09-20</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url><url><loc>https://rkskqdl-a11y.github.io/킥스_2행정_가솔린_엔진오일_KIXX_M_2T.html</loc><lastmod>2025-09-20</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url><url><loc>https://rkskqdl-a11y.github.io/가솔린엔진오일_킥스_KIXX_G_API-SP_5W30_4L.html</loc><lastmod>2025-09-20</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url><url><loc>https://rkskqdl-a11y.github.io/지크_SK엔무브_X8_엔진오일.html</loc><lastmod>2025-09-20</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url><url><loc>https://rkskqdl-a11y.github.io/지크_X8_가솔린_LPG_엔진오일.html</loc><lastmod>2025-09-20</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url><url><loc>https://rkskqdl-a11y.github.io/지크_X8_가솔린_LPG_엔진오일.html</loc><lastmod>2025-09-20</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url><url><loc>https://rkskqdl-a11y.github.io/킥스_G_SN_합성_가솔린_엔진오일.html</loc><lastmod>2025-09-20</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url><url><loc>https://rkskqdl-a11y.github.io/지크_X8_가솔린_LPG_엔진오일.html</loc><lastmod>2025-09-20</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url><url><loc>https://rkskqdl-a11y.github.io/가솔린엔진오일_킥스_KIXX_G_API-SP_5W30_4L.html</loc><lastmod>2025-09-20</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url><url><loc>https://rkskqdl-a11y.github.io/지크_X10_LS_가솔린_엔진오일.html</loc><lastmod>2025-09-20</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url><url><loc>https://rkskqdl-a11y.github.io/[킥스]_그랜저GN7_하이브리드_엔진오일+에어크리너+오일필터_세트.html</loc><lastmod>2025-09-20</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url><url><loc>https://rkskqdl-a11y.github.io/킥스_2행정_가솔린_엔진오일_KIXX_M_2T.html</loc><lastmod>2025-09-20</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url><url><loc>https://rkskqdl-a11y.github.io/[킥스파오_KIXX_PAO_C2C3_5W30]_싼타페DM_디젤_합성엔진오일_필터_패키지_세.html</loc><lastmod>2025-09-20</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url><url><loc>https://rkskqdl-a11y.github.io/킥스_2행정_가솔린_엔진오일_KIXX_M_2T.html</loc><lastmod>2025-09-20</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url><url><loc>https://rkskqdl-a11y.github.io/지크_X8_가솔린_LPG_엔진오일.html</loc><lastmod>2025-09-20</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url><url><loc>https://rkskqdl-a11y.github.io/지크_X10_LS_가솔린_엔진오일.html</loc><lastmod>2025-09-20</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url><url><loc>https://rkskqdl-a11y.github.io/킥스_G_SN_합성_가솔린_엔진오일.html</loc><lastmod>2025-09-20</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url><url><loc>https://rkskqdl-a11y.github.io/지크_X8_가솔린_LPG_엔진오일.html</loc><lastmod>2025-09-20</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url><url><loc>https://rkskqdl-a11y.github.io/가솔린엔진오일_킥스_KIXX_G_API-SP_5W30_4L.html</loc><lastmod>2025-09-20</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url><url><loc>https://rkskqdl-a11y.github.io/지크_X8_가솔린_LPG_엔진오일.html</loc><lastmod>2025-09-20</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url><url><loc>https://rkskqdl-a11y.github.io/지크_SK엔무브_X8_엔진오일.html</loc><lastmod>2025-09-20</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url><url><loc>https://rkskqdl-a11y.github.io/[킥스]_그랜저GN7_하이브리드_엔진오일+에어크리너+오일필터_세트.html</loc><lastmod>2025-09-20</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url><url><loc>https://rkskqdl-a11y.github.io/[킥스파오_KIXX_PAO_C2C3_5W30]_싼타페DM_디젤_합성엔진오일_필터_패키지_세.html</loc><lastmod>2025-09-20</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url></ns0:urlset>
