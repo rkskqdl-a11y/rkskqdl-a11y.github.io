@@ -55,7 +55,9 @@ def call_coupang_partners_api(method, api_path, query_params=None, body_payload=
     response.raise_for_status()
     return response.json()
 
-def search_products_api(keyword, page=1, limit=50):
+# -------- 상품 검색 API 호출 함수 --------
+# limit을 20으로 고정!
+def search_products_api(keyword, page=1, limit=20): # <<<<<<<<<<<<<<<< limit = 20 으로 수정!!!!
     api_path = "/v2/providers/affiliate_open_api/apis/openapi/products/search"
     query_params = {
         "keyword": keyword,
@@ -133,7 +135,8 @@ def create_html_page(product_info):
 
 # -------- 메인 함수 --------
 if __name__ == "__main__":
-    MAX_KEYWORD_RETRIES = 5 # <<<<<<<< 최대 5번까지 다른 키워드로 재시도
+    MAX_KEYWORD_RETRIES = 5
+    FETCH_PRODUCT_LIMIT = 20 # <<<<<<<<<<<<<<<< 최종적으로 20개로 고정 (API 최대치!)
     
     try:
         SEARCH_KEYWORDS_LIST = [
@@ -174,15 +177,14 @@ if __name__ == "__main__":
             print(f"'{selected_keyword}' 상품 검색 시도...")
             
             try:
-                search_results = search_products_api(selected_keyword, limit=30)
+                search_results = search_products_api(selected_keyword, limit=FETCH_PRODUCT_LIMIT)
                 
-                # <<<<<<<<<<<<  여기서 API 원본 응답 전부 출력!  >>>>>>>>>>>>>
                 print(f"\n--- 상품 검색 API 원본 응답 (DEBUG) - 키워드: '{selected_keyword}' ---")
-                print(json.dumps(search_results, indent=4, ensure_ascii=False)) # 보기 좋게 출력
+                print(json.dumps(search_results, indent=4, ensure_ascii=False))
                 print("-----------------------------------------------------------------------\n")
                 
                 if search_results and search_results.get('data') and search_results['data'].get('productData'):
-                    if len(search_results['data']['productData']) > 0: # 상품 리스트가 비어있지 않다면 성공!
+                    if len(search_results['data']['productData']) > 0:
                         print(f"'{selected_keyword}' 키워드로 {len(search_results['data']['productData'])}개 상품 발견!")
                         break # 상품을 찾았으니 루프 종료
                     else:
@@ -192,17 +194,15 @@ if __name__ == "__main__":
 
             except requests.exceptions.HTTPError as http_err:
                 print(f"HTTP 오류 발생 ({selected_keyword}): {http_err.response.status_code} - {http_err.response.text}")
-                # HTTP 에러가 발생해도 다른 키워드로 재시도하도록 `break` 하지 않음
             except Exception as e:
                 print(f"API 호출 중 예기치 않은 오류 발생 ({selected_keyword}): {e}")
-                # 예기치 않은 오류도 다른 키워드로 재시도하도록 `break` 하지 않음
 
             retries += 1
             print(f"다른 키워드로 재시도합니다.")
             
             if retries >= MAX_KEYWORD_RETRIES:
                 print(f"최대 재시도 횟수({MAX_KEYWORD_RETRIES}회)를 초과했습니다. 상품 생성을 중단합니다.")
-                exit(0) # 재시도 모두 실패 시 정상 종료
+                exit(0)
 
 
         if not search_results or not search_results.get('data') or not search_results['data'].get('productData') or len(search_results['data']['productData']) == 0:
@@ -232,7 +232,7 @@ if __name__ == "__main__":
                     generated_html_files.append(html_file)
                     print(f"-> '{html_file}' 생성 완료")
                 else:
-                    print(f"상품명: {product_name}, 파트너스 URL 없음. HTML 생성 건너뜜.")
+                    print(f"상품명: {product_name}, 파트너스 URL 없음. HTML 생성 건너뜀.")
         else:
             print("검색된 상품이 없습니다.")
         
