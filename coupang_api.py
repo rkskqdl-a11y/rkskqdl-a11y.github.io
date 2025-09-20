@@ -42,25 +42,23 @@ def call_coupang_api(method, api_path, query_params=None, body=None):
     resp.raise_for_status() # HTTP 에러 발생 시 예외 발생
     return resp.json()
 
-# 상품 검색 API 함수 (limit은 API 허용 범위 내로 유지)
-def search_products(keyword, page=1, limit=10): # 함수 이름: search_products (이전 오류 해결!)
+# 상품 검색 API 함수
+def search_products(keyword, page=1, limit=10):
     api_path = "/v2/providers/affiliate_open_api/apis/openapi/products/search"
     params = {"keyword": keyword, "limit": limit, "offset": (page-1)*limit}
     return call_coupang_api("GET", api_path, params)
 
-# HTML 페이지 생성 함수 (세련된 스타일, 풍부한 정보, 쿠팡 글자 제거, 이미지 링크)
-def create_html(product): # 함수 이름: create_html (이전 오류 해결!)
+# HTML 페이지 생성 함수 (세련된 스타일, 풍부한 정보, 쿠팡 글자 제거, 이미지 링크, '실구매후기' 버튼 추가)
+def create_html(product):
     name = product.get('productName', '상품명 없음')
     url = product.get('productUrl', '#')
-    img = product.get('productImage', 'https://via.placeholder.com/400x300?text=No+Image')
+    img = product.get('productImage', 'https://via.placeholder.com/400x300?text=이미지+없음') # 이미지 없을 때 표시
     price = product.get('productPrice', 0)
     category = product.get('categoryName', '정보 없음')
     rank = product.get('rank', 'N/A')
     
-    # 배송 정보는 삭제 (요청 반영)
-    # 후기 개수 (요청 반영)
-    review_count = product.get('reviewCount')
-    review_text = f"후기 {review_count}개" if review_count is not None else "후기보기" # 후기 없으면 '후기보기'
+    # '실구매후기' 버튼이 들어가므로, 배송 정보, 후기 개수는 이제 HTML에 직접 표시하지 않음
+    # (하지만 API 데이터로는 여전히 가져오고 있으니 나중에 다른 정보 넣고 싶으면 활용 가능)
 
     # 파일명으로 사용할 수 없는 문자 제거 및 공백 대체
     safe_name = re.sub(r'[\\/*?:"<>|]', '', name).replace(' ', '_')[:50].strip('_')
@@ -77,9 +75,9 @@ def create_html(product): # 함수 이름: create_html (이전 오류 해결!)
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>{name}</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap');
   body {{
-    font-family: 'Noto Sans KR', Arial, sans-serif;
+    font-family: 'Noto Sans KR', sans-serif;
     max-width: 820px; margin: auto; padding: 20px; background: #fdfdfd; color: #222;
   }}
   h1 {{
@@ -93,7 +91,7 @@ def create_html(product): # 함수 이름: create_html (이전 오류 해결!)
     cursor: pointer; transition: transform 0.3s ease;
   }}
   .product-img img:hover {{
-    transform: scale(1.05);
+    transform: scale(1.03);
   }}
   .price {{
     font-size: 1.8rem; color: #e64e32; font-weight: 800;
@@ -109,24 +107,41 @@ def create_html(product): # 함수 이름: create_html (이전 오류 해결!)
   .detail-info strong {{
     color: #ff5a3c;
   }}
-  .buy-btn {{
-    display: block;
+  .button-group {{
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* 버튼 사이 간격 */
     max-width: 320px;
-    margin: auto;
+    margin: auto; /* 중앙 정렬 */
+    margin-top: 25px; /* 버튼 그룹 상단 여백 */
+  }}
+  .buy-btn, .review-btn {{
+    display: block;
     padding: 16px 0;
     color: #fff;
-    background: linear-gradient(90deg, #ff5a3c 0%, #ff7a5a 100%);
-    box-shadow: 0 5px 15px rgba(255,90,60,0.6);
     border-radius: 14px;
     font-weight: 900;
     font-size: 1.3rem;
     text-align: center;
     text-decoration: none;
     transition: background 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2); /* 공통 그림자 */
+  }}
+  .buy-btn {{
+    background: linear-gradient(90deg, #ff5a3c 0%, #ff7a5a 100%);
+    box-shadow: 0 5px 15px rgba(255,90,60,0.6);
   }}
   .buy-btn:hover {{
     background: linear-gradient(90deg, #ff764e 0%, #ff956e 100%);
     box-shadow: 0 8px 20px rgba(255,90,60,0.8);
+  }}
+  .review-btn {{
+    background: linear-gradient(90deg, #5c67f2 0%, #8c96ff 100%); /* 다른 색상 (파란 계열) */
+    box-shadow: 0 5px 15px rgba(92,103,242,0.6);
+  }}
+  .review-btn:hover {{
+    background: linear-gradient(90deg, #707bf3 0%, #a0a8ff 100%);
+    box-shadow: 0 8px 20px rgba(92,103,242,0.8);
   }}
   .disclosure {{
     font-size: 0.85rem;
@@ -144,9 +159,11 @@ def create_html(product): # 함수 이름: create_html (이전 오류 해결!)
       font-size: 1.8rem;
       margin-bottom: 15px;
     }}
-    .buy-btn {{
-      width: 100%;
+    .button-group {{
       max-width: none;
+      width: 100%;
+    }}
+    .buy-btn, .review-btn {{
       padding: 14px 0;
       font-size: 1.1rem;
       border-radius: 10px;
@@ -165,9 +182,12 @@ def create_html(product): # 함수 이름: create_html (이전 오류 해결!)
   <div class="detail-info">
     <p><strong>카테고리:</strong> {category}</p>
     <p><strong>검색 순위:</strong> {rank}위</p>
-    <p><strong>{review_text}</strong></p>
+    <p>실시간 가격 및 최신 정보는 버튼을 눌러 확인하세요.</p>
   </div>
-  <a href="{url}" class="buy-btn" target="_blank" rel="nofollow noopener sponsored">바로 구매하기</a>
+  <div class="button-group">
+    <a href="{url}" class="review-btn" target="_blank" rel="nofollow noopener sponsored">실구매후기 보러가기</a>
+    <a href="{url}" class="buy-btn" target="_blank" rel="nofollow noopener sponsored">바로 구매하기</a>
+  </div>
   <div class="disclosure">{disclosure}</div>
 </body>
 </html>
@@ -178,7 +198,7 @@ def create_html(product): # 함수 이름: create_html (이전 오류 해결!)
 
 # 메인 실행 로직
 if __name__ == "__main__":
-    SEARCH_KEYWORDS_LIST = [ # <<< 네가 준 길고 긴 키워드 리스트!
+    SEARCH_KEYWORDS_LIST = [ # 네가 준 길고 긴 키워드 리스트! (줄임)
         "노트북", "캠핑용품", "아이폰15", "무선 이어폰", "게이밍 마우스",
         "에어프라이어", "로봇청소기", "캡슐커피머신", "전기 주전자", "토스터기",
         "믹서기", "제습기", "가습기", "선풍기", "에어컨", "온수매트",
@@ -231,7 +251,6 @@ if __name__ == "__main__":
             print(f"'{selected_keyword}' 상품 검색 시도 (페이지 {page_num})...")
             
             try:
-                # <<<<<<<<<<<<<<<< 여기가 'search_products_api' 에서 'search_products'로 바뀐 부분! >>>>>>>>>>>>>>>>>>
                 search_results = search_products(selected_keyword, page=page_num, limit=API_CALL_LIMIT_PER_PAGE)
                 
                 # Debug 로그 (필요시 주석 해제해서 API 응답 확인 가능)
@@ -275,7 +294,6 @@ if __name__ == "__main__":
     generated_html_files_count = 0
     for product_data in all_products_to_generate:
         try:
-            # <<<<<<<<<<<<<<<< 여기가 'create_html_page' 에서 'create_html'로 바뀐 부분! >>>>>>>>>>>>>>>>>>
             created_filename = create_html(product_data)
             print(f"-> '{created_filename}' 생성 완료")
             generated_html_files_count += 1
