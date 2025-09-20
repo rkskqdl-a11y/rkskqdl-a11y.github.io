@@ -9,6 +9,7 @@ from urllib.parse import urlencode, quote_plus
 import re
 import sys
 
+# 쿠팡 API 키 환경변수
 ACCESS_KEY = os.environ.get('COUPANG_ACCESS_KEY')
 SECRET_KEY = os.environ.get('COUPANG_SECRET_KEY')
 
@@ -33,11 +34,11 @@ def call_coupang_api(method, api_path, query_params=None, body=None):
     full_url = f"{DOMAIN}{url_for_hmac}"
     headers = {"Authorization": authorization, "Content-Type": "application/json"}
     if method == "GET":
-        res = requests.get(full_url, headers=headers)
+        resp = requests.get(full_url, headers=headers)
     else:
-        res = requests.post(full_url, headers=headers, data=json.dumps(body))
-    res.raise_for_status()
-    return res.json()
+        resp = requests.post(full_url, headers=headers, data=json.dumps(body))
+    resp.raise_for_status()
+    return resp.json()
 
 def search_products(keyword, page=1, limit=10):
     api_path = "/v2/providers/affiliate_open_api/apis/openapi/products/search"
@@ -49,15 +50,13 @@ def create_html(product):
     url = product.get('productUrl', '#')
     img = product.get('productImage', 'https://via.placeholder.com/400x300.png?text=No+Image')
     price = product.get('productPrice', 0)
+
     review_count = product.get('reviewCount')
-    if review_count is not None:
-        review_text = f"후기 {review_count}개"
-    else:
-        review_text = "후기보기"
+    review_text = f"후기 {review_count}개" if review_count is not None else "후기보기"
 
     safe_name = re.sub(r'[\\/*?:"<>|]', '', name).replace(' ', '_')[:50].strip('_')
     if not safe_name:
-        safe_name = f"product_{hash(name+url) % 1000000}"
+        safe_name = f"product_{hash(name + url) % 1000000}"
 
     filename = f"{safe_name}.html"
     disclosure = "이 포스팅은 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다."
@@ -214,10 +213,3 @@ if __name__ == "__main__":
         print(f"\n총 {len(generated_html_files)}개의 HTML 파일이 생성되었습니다.")
     else:
         print("\n생성된 HTML 파일이 없습니다.")
-except requests.exceptions.HTTPError as http_err:
-    print(f"HTTP 오류 발생: {http_err.response.status_code} - {http_err.response.text}")
-    print(f"응답 본문: {http_err.response.text}")
-    raise
-except Exception as e:
-    print(f"API 호출 중 예기치 않은 오류 발생: {e}")
-    raise
