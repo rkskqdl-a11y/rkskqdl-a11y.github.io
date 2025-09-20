@@ -17,6 +17,7 @@ if not ACCESS_KEY or not SECRET_KEY:
 
 DOMAIN = "https://api-gateway.coupang.com"
 
+# 쿠팡 파트너스 공식 문서에 있는 HMAC 서명 생성 함수 그대로 사용
 def generateHmac(method, url_for_hmac, secretKey, accessKey):
     path, *query = url_for_hmac.split("?")
     datetimeGMT = strftime('%y%m%d', gmtime()) + 'T' + strftime('%H%M%S', gmtime()) + 'Z'
@@ -61,13 +62,16 @@ def search_products_api(keyword, page=1, limit=50):
     }
     return call_coupang_partners_api("GET", api_path, query_params=query_params)
 
-def create_deeplinks_api(coupang_urls_list):
-    api_path = "/v2/providers/affiliate_open_api/apis/openapi/v1/deeplink"
-    body_payload = { 
-        "coupangUrls": coupang_urls_list
-    }
-    return call_coupang_partners_api("POST", api_path, body_payload=body_payload)
+# -------- 딥링크 생성 API는 이제 필요 없어졌으니 이 함수를 호출하지 않도록 할 거야! --------
+# def create_deeplinks_api(coupang_urls_list):
+#     api_path = "/v2/providers/affiliate_open_api/apis/openapi/v1/deeplink"
+#     body_payload = { 
+#         "coupangUrls": coupang_urls_list
+#     }
+#     return call_coupang_partners_api("POST", api_path, body_payload=body_payload)
 
+
+# -------- 메인 함수 --------
 if __name__ == "__main__":
     try:
         SEARCH_KEYWORDS_LIST = [
@@ -99,7 +103,7 @@ if __name__ == "__main__":
         ]
         
         selected_keyword = random.choice(SEARCH_KEYWORDS_LIST)
-        FETCH_PRODUCT_LIMIT = 2 
+        FETCH_PRODUCT_LIMIT = 2 # 테스트니까 2개! (나중에 30개로 바꿀거임)
 
         print(f"랜덤 키워드 선택: '{selected_keyword}'")
         print(f"'{selected_keyword}' 상품 검색 시도...")
@@ -112,41 +116,23 @@ if __name__ == "__main__":
 
         product_items = search_results['data']['productData'] 
         
-        product_urls_from_search = []
-        print("\n--- 검색된 상품 정보 ---")
-        for item in product_items:
-            product_name = item.get('productName', '이름 없음')
-            product_url = item.get('productUrl') 
-            if product_url:
-                print(f"상품명: {product_name}, URL: {product_url}")
-                product_urls_from_search.append(product_url)
-            else:
-                print(f"상품명: {product_name}, URL 없음.")
-
-
-        if not product_urls_from_search:
-            print("딥링크를 생성할 상품 URL이 없습니다.")
-            exit(0)
-
-        # 검색된 상품 URL들로 딥링크 생성 요청
-        print(f"\n검색된 상품 ({len(product_urls_from_search)}개)으로 딥링크 생성 시도...")
-        deeplink_response = create_deeplinks_api(product_urls_from_search)
-        
-        # <<<<<<<<<<<<  여기가 새로 추가된 핵심 부분! 딥링크 응답 전문 출력!  >>>>>>>>>>>>>
-        print("\n--- 딥링크 생성 API 원본 응답 데이터 (DEBUG) ---")
-        print(json.dumps(deeplink_response, indent=4, ensure_ascii=False)) # 보기 좋게 출력
-        print("---------------------------------------------------\n")
-        
-        
-        print("\n--- 생성된 딥링크 ---")
-        if deeplink_response and deeplink_response.get('data'): # 여기 'data' 키 확인은 이전과 동일
-            for link_data in deeplink_response['data']:
-                original_url = link_data.get('originalUrl')
-                shorten_url = link_data.get('shortenUrl')
-                print(f"원본 URL: {original_url}")
-                print(f"파트너스 URL: {shorten_url}\n")
+        # <<<<<<<<<<<< 딥링크 생성 API 호출 없이 바로 파트너스 URL 출력!  >>>>>>>>>>>>>
+        print("\n--- 최종 파트너스 URL ---")
+        if product_items:
+            for item in product_items:
+                product_name = item.get('productName', '이름 없음')
+                partner_url = item.get('productUrl') # 이미 이게 파트너스 URL이야!
+                if partner_url:
+                    print(f"상품명: {product_name}")
+                    print(f"파트너스 URL: {partner_url}\n")
+                else:
+                    print(f"상품명: {product_name}, 파트너스 URL 없음.")
         else:
-            print("딥링크 생성에 실패했습니다. 응답 데이터가 유효하지 않습니다.")
+            print("검색된 상품이 없습니다.")
+
+        # # 딥링크 생성 API 관련 코드는 모두 삭제 또는 주석 처리!
+        # # ... (이전의 딥링크 생성 API 호출 및 처리 로직들) ...
+        # # 이제는 이 부분이 필요 없음!
 
     except requests.exceptions.HTTPError as http_err:
         print(f"HTTP 오류 발생: {http_err.response.status_code} - {http_err.response.text}")
