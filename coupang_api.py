@@ -6,6 +6,8 @@ import json
 from time import gmtime, strftime
 import random
 from urllib.parse import urlencode, quote_plus
+from datetime import datetime
+import re # <<<<< 정규식 모듈 추가 (파일명으로 쓸 수 없는 문자 제거용)
 
 # 쿠팡 API 키는 깃허브 Secrets에서 가져옴
 ACCESS_KEY = os.environ.get('COUPANG_ACCESS_KEY')
@@ -62,14 +64,77 @@ def search_products_api(keyword, page=1, limit=50):
     }
     return call_coupang_partners_api("GET", api_path, query_params=query_params)
 
-# -------- 딥링크 생성 API는 이제 필요 없어졌으니 이 함수를 호출하지 않도록 할 거야! --------
-# def create_deeplinks_api(coupang_urls_list):
-#     api_path = "/v2/providers/affiliate_open_api/apis/openapi/v1/deeplink"
-#     body_payload = { 
-#         "coupangUrls": coupang_urls_list
-#     }
-#     return call_coupang_partners_api("POST", api_path, body_payload=body_payload)
+# -------- HTML 페이지 생성 함수 --------
+def create_html_page(product_info):
+    product_name = product_info['productName']
+    partner_url = product_info['partnerUrl']
+    product_image = product_info['productImage']
+    product_price = product_info['productPrice']
+    
+    # 대가성 문구 (쿠팡 가이드라인 준수)
+    disclosure = "이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다."
 
+    # 파일명으로 사용할 수 없는 문자 제거 및 공백 대체
+    # 파일명은 너무 길지 않게, 상품명 일부를 잘라서 사용
+    safe_product_name = re.sub(r'[\\/*?:"<>|]', '', product_name) # 특수문자 제거
+    safe_product_name = safe_product_name.replace(' ', '_') # 공백을 밑줄로 대체
+    filename_base = safe_product_name[:50].strip('_') # 앞 50자만 사용 (너무 길지 않게)
+    if not filename_base: # 파일명이 비어있는 경우 대비
+        filename_base = "product_" + str(hash(product_name + partner_url))[:8] # 해시값으로 고유 파일명
+
+    html_filename = f"{filename_base}.html" # .html 확장자 붙이기
+
+    html_content = f"""
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{product_name} | 상품 정보</title>
+    <meta name="description" content="{product_name} 상세 정보 및 최저가 확인">
+    <style>
+        body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #f4f7f6; color: #333; }}
+        .container {{ max-width: 800px; margin: auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }}
+        h1 {{ color: #2c3e50; text-align: center; margin-bottom: 30px; font-size: 2.2em; }}
+        .product-image {{ text-align: center; margin-bottom: 30px; }}
+        .product-image img {{ max-width: 100%; height: auto; border-radius: 8px; border: 1px solid #eee; }}
+        .product-detail p {{ font-size: 1.1em; line-height: 1.6; margin-bottom: 10px; }}
+        .product-detail strong {{ color: #2980b9; }}
+        .buy-button {{ display: block; width: 80%; max-width: 300px; margin: 30px auto; padding: 15px 25px; background-color: #ff5722; color: white; text-align: center; text-decoration: none; border-radius: 8px; font-size: 1.3em; font-weight: bold; transition: background-color 0.3s ease; box-shadow: 0 4px 8px rgba(255,87,34,0.3); }}
+        .buy-button:hover {{ background-color: #e64a19; transform: translateY(-2px); }}
+        .disclosure {{ text-align: center; font-size: 0.9em; color: #7f8c8d; margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px; }}
+        /* 모바일 반응형 */
+        @media (max-width: 600px) {{
+            .container {{ margin: 10px; padding: 15px; }}
+            h1 {{ font-size: 1.8em; }}
+            .buy-button {{ width: 95%; padding: 12px 20px; font-size: 1.1em; }}
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>{product_name}</h1>
+        <div class="product-image">
+            <img src="{product_image}" alt="{product_name}">
+        </div>
+        <div class="product-detail">
+            <p><strong>가격:</strong> {product_price:,}원</p>
+            <p>쿠팡에서 {product_name}의 최신 가격 및 상세 정보를 확인해보세요.</p>
+        </div>
+        <a href="{partner_url}" target="_blank" class="buy-button">쿠팡에서 {product_name} 구매하기</a>
+        <div class="disclosure">
+            {disclosure}
+        </div>
+    </div>
+</body>
+</html>
+"""
+    # 깃허브 리포지토리에 파일 생성 (액션 환경 내)
+    # 실제로는 이 파일을 깃허브 레포에 푸시하는 과정이 필요함 (다음 단계에서 GitHub Actions로)
+    with open(html_filename, 'w', encoding='utf-8') as f:
+        f.write(html_content)
+    
+    return html_filename # 생성된 파일 이름 반환
 
 # -------- 메인 함수 --------
 if __name__ == "__main__":
@@ -103,7 +168,7 @@ if __name__ == "__main__":
         ]
         
         selected_keyword = random.choice(SEARCH_KEYWORDS_LIST)
-        FETCH_PRODUCT_LIMIT = 2 # 테스트니까 2개! (나중에 30개로 바꿀거임)
+        FETCH_PRODUCT_LIMIT = 2 # <<<<< 테스트니까 2개! (나중에 30개로 바꿀거임!)
 
         print(f"랜덤 키워드 선택: '{selected_keyword}'")
         print(f"'{selected_keyword}' 상품 검색 시도...")
@@ -116,23 +181,36 @@ if __name__ == "__main__":
 
         product_items = search_results['data']['productData'] 
         
-        # <<<<<<<<<<<< 딥링크 생성 API 호출 없이 바로 파트너스 URL 출력!  >>>>>>>>>>>>>
-        print("\n--- 최종 파트너스 URL ---")
+        generated_html_files = [] # 생성된 HTML 파일 목록 저장
+        
+        print("\n--- HTML 페이지 생성 중 ---")
         if product_items:
             for item in product_items:
                 product_name = item.get('productName', '이름 없음')
-                partner_url = item.get('productUrl') # 이미 이게 파트너스 URL이야!
+                partner_url = item.get('productUrl')
+                product_image = item.get('productImage', '')
+                product_price = item.get('productPrice', 0)
+                
                 if partner_url:
-                    print(f"상품명: {product_name}")
-                    print(f"파트너스 URL: {partner_url}\n")
+                    product_info_for_html = {
+                        "productName": product_name,
+                        "partnerUrl": partner_url,
+                        "productImage": product_image,
+                        "productPrice": product_price
+                    }
+                    html_file = create_html_page(product_info_for_html)
+                    generated_html_files.append(html_file)
+                    print(f"-> '{html_file}' 생성 완료")
                 else:
-                    print(f"상품명: {product_name}, 파트너스 URL 없음.")
+                    print(f"상품명: {product_name}, 파트너스 URL 없음. HTML 생성 건너뜀.")
         else:
             print("검색된 상품이 없습니다.")
-
-        # # 딥링크 생성 API 관련 코드는 모두 삭제 또는 주석 처리!
-        # # ... (이전의 딥링크 생성 API 호출 및 처리 로직들) ...
-        # # 이제는 이 부분이 필요 없음!
+        
+        if generated_html_files:
+            print(f"\n총 {len(generated_html_files)}개의 HTML 파일이 생성되었습니다.")
+            # 여기서 generated_html_files를 다음 단계(sitemap 업데이트, git push)로 넘겨줄 수 있음
+        else:
+            print("\n생성된 HTML 파일이 없습니다.")
 
     except requests.exceptions.HTTPError as http_err:
         print(f"HTTP 오류 발생: {http_err.response.status_code} - {http_err.response.text}")
