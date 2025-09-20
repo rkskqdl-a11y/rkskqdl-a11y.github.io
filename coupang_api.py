@@ -5,6 +5,7 @@ import hashlib
 import json
 from time import gmtime, strftime
 import random 
+from urllib.parse import quote_plus # <<<<<<<<<< 여기 추가! URL 인코딩 필요
 
 # 쿠팡 API 키는 깃허브 Secrets에서 가져옴
 ACCESS_KEY = os.environ.get('COUPANG_ACCESS_KEY')
@@ -17,67 +18,69 @@ if not ACCESS_KEY or not SECRET_KEY:
 # 파트너스 API의 기본 도메인은 이걸로 고정
 DOMAIN = "https://api-gateway.coupang.com" 
 
-# HMAC 시그니처 생성 함수 - 파트너스 API 규칙 (DeepLink와 Product Search 모두 동일)
+# HMAC 시그니처 생성 함수 - 파트너스 API 규칙
 def generate_hmac_signature(method, url, secret_key, access_key):
-    path, *query = url.split("?")
+    path, query_string = (url.split("?") + [''])[:2] # query_string이 없을 경우 '' 할당
     
     datetime_gmt = strftime('%y%m%d', gmtime()) + 'T' + strftime('%H%M%S', gmtime()) + 'Z'
     
-    message_content = path
-    if query:
-        # 쿼리가 있다면 ?와 함께 path에 붙임
-        message_content += "?" + query[0]
+    # query_string이 존재하면 포함, 없으면 path만
+    message_to_sign = datetime_gmt + method + path
+    if query_string:
+        # 쿼리 파라미터는 '&'로 합쳐진 형태를 그대로 사용, 이미 URL 인코딩 되어있음
+        message_to_sign += '?' + query_string
 
-    message = datetime_gmt + method + message_content
-    
     signature = hmac.new(bytes(secret_key, "utf-8"),
-                         message.encode("utf-8"),
+                         message_to_sign.encode("utf-8"),
                          hashlib.sha256).hexdigest()
 
     return "CEA algorithm=HmacSHA256, access-key={}, signed-date={}, signature={}".format(access_key, datetime_gmt, signature)
 
 
 # 쿠팡 파트너스 API 호출 함수 (모든 파트너스 API 요청에 사용)
-def call_coupang_partners_api(method, url, payload=None):
-    authorization = generate_hmac_signature(method, url, SECRET_KEY, ACCESS_KEY)
+def call_coupang_partners_api(method, url_path, params=None, payload=None):
+    # GET 요청 시 쿼리 파라미터를 URL에 직접 합쳐서 시그니처 생성
+    full_url = url_path
+    query_string = ""
+    if params:
+        # 쿼리 파라미터를 URL 인코딩해서 합침
+        query_string = "&".join([f"{k}={quote_plus(str(v))}" for k, v in params.items()])
+        full_url += "?" + query_string
+        
+    authorization = generate_hmac_signature(method, full_url, SECRET_KEY, ACCESS_KEY)
+    
     headers = {
         "Authorization": authorization,
-        "Content-Type": "application/json" if payload else "application/x-www-form-urlencoded" # payload 있으면 json, 없으면 form
+        "Content-Type": "application/json" if payload else "application/x-www-form-urlencoded"
     }
 
-    full_url = f"{DOMAIN}{url}"
-    
+    request_url = f"{DOMAIN}{full_url}" # 실제 요청 URL
+
     if method == "GET":
-        response = requests.get(full_url, headers=headers)
+        response = requests.get(request_url, headers=headers)
     elif method == "POST":
-        response = requests.post(full_url, headers=headers, data=json.dumps(payload) if payload else None)
+        response = requests.post(request_url, headers=headers, data=json.dumps(payload) if payload else None)
     
     response.raise_for_status() # HTTP 4xx, 5xx 에러 발생 시 예외 throw
     return response.json()
 
 # 상품 검색 API 호출 함수 (오직 파트너스 API에서 상품 검색에 사용!)
-def search_products(keyword, page=1, limit=50): # limit 기본값 50으로 올림 (API 최대 50개)
+def search_products(keyword, page=1, limit=50): 
     # 파트너스 API 상품 검색 엔드포인트!
     url_path = f"/v2/providers/affiliate_open_api/apis/openapi/products/search"
-    # 쿼리 파라미터는 따로 전달
+    # 쿼리 파라미터는 Dictionary 형태로 전달 (call_coupang_partners_api에서 인코딩)
     params = {
         "keyword": keyword,
         "limit": limit,
         "offset": (page - 1) * limit
     }
-    # 쿼리 스트링 만들기
-    query_string = "&".join([f"{k}={v}" for k, v in params.items()])
     
-    full_url_with_query = f"{url_path}?{query_string}"
-    
-    return call_coupang_partners_api("GET", full_url_with_query)
+    return call_coupang_partners_api("GET", url_path, params=params)
 
 
 # 메인 함수: 실제 상품 검색 후 딥링크 생성까지
 if __name__ == "__main__":
     try:
-        # 여기에 네가 검색할 "엄청 많은 키워드 리스트"를 넣어줘!
-        # 매번 돌릴 때마다 이 리스트에서 '랜덤으로 하나' 뽑아서 검색할 거야.
         SEARCH_KEYWORDS_LIST = [
             "노트북", "캠핑용품", "아이폰15", "무선 이어폰", "게이밍 마우스",
             "에어프라이어", "로봇청소기", "캡슐커피머신", "전기 주전자", "토스터기",
@@ -117,7 +120,6 @@ if __name__ == "__main__":
         # 검색 결과가 있는지 확인
         if not search_results or not search_results.get('data'):
             print(f"'{SEARCH_KEYWORD}' 검색 결과 없음.")
-            # 오류는 아니지만, 상품이 없으면 종료
             exit(0) # 성공적으로 종료 (상품 없음)
 
         product_urls_to_deeplink = []
@@ -144,7 +146,7 @@ if __name__ == "__main__":
         DEEPLINK_API_URL = "/v2/providers/affiliate_open_api/apis/openapi/v1/deeplink"
 
         print(f"\n검색된 상품으로 딥링크 생성 시도...")
-        deeplink_response = call_coupang_partners_api("POST", DEEPLINK_API_URL, deeplink_request_payload)
+        deeplink_response = call_coupang_partners_api("POST", DEEPLINK_API_URL, payload=deeplink_request_payload) # <<<<< payload= 추가!
         
         print("\n--- 생성된 딥링크 ---")
         # 생성된 딥링크 출력
