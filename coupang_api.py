@@ -112,41 +112,30 @@ if __name__ == "__main__":
         
         search_results = search_products_api(selected_keyword, limit=FETCH_PRODUCT_LIMIT)
         
-        # <<<<<<<<<<<<  여기가 새로 추가된 핵심 부분! 응답 전문 출력!  >>>>>>>>>>>>>
-        print("\n--- 상품 검색 API 원본 응답 데이터 (DEBUG) ---")
-        print(json.dumps(search_results, indent=4, ensure_ascii=False)) # 보기 좋게 출력
-        print("---------------------------------------------------\n")
+        # <<<<<<<<<<<<  응답 전문 출력은 이제 디버깅용으로 놔둬  >>>>>>>>>>>>>
+        # print("\n--- 상품 검색 API 원본 응답 데이터 (DEBUG) ---")
+        # print(json.dumps(search_results, indent=4, ensure_ascii=False)) # 보기 좋게 출력
+        # print("---------------------------------------------------\n")
 
 
-        # 이전 에러의 원인: search_results['data']에 item들이 딕셔너리가 아닌 'str'로 들어왔었음
-        # 일단은 'data' 키가 있는지 확인하고, 그 안에 'productData' 같은 키가 있는지 확인해야 할 수도 있음.
-        # 정확한 구조는 위 DEBUG 출력 후 다시 확인해서 파싱 로직을 고쳐야 함.
-        # 일단은 `data` 키가 있고, 그 값이 리스트라고 가정하고 진행.
-
-        if not search_results or not search_results.get('data'): # 'data' 키가 없으면 결과 없음 처리
+        if not search_results or not search_results.get('data') or not search_results['data'].get('productData'):
             print(f"'{selected_keyword}' 검색 결과 없음. 또는 데이터 구조 문제.")
             exit(0)
 
-        product_items = search_results['data'] # 'data' 키 아래에 있는 리스트 가져오기
-        
-        # 여기가 이전 에러의 원인이었던 for 루프.
-        # 만약 `product_items`가 리스트 안에 '딕셔너리'를 가지고 있다면 아래 코드가 동작함.
-        # 하지만 만약 '딕셔너리'가 아니라 '문자열' 같은 다른 타입이라면 여기서 또 에러날 수 있음.
+        # <<<<<<<<<<<<  이 부분이 핵심 변경! productData 리스트를 정확히 가져옴  >>>>>>>>>>>>>
+        product_items = search_results['data']['productData'] 
         
         product_urls_from_search = []
         print("\n--- 검색된 상품 정보 ---")
-        for item in product_items: # 이제 item은 리스트 안의 각 요소를 의미.
-            # 여기가 이전 에러의 핵심. item이 진짜 dict인지 확인하는 코드를 추가했음
-            if isinstance(item, dict): # 만약 item이 딕셔너리 타입이라면
-                product_name = item.get('productName', '이름 없음')
-                product_url = item.get('productUrl') 
-                if product_url:
-                    print(f"상품명: {product_name}, URL: {product_url}")
-                    product_urls_from_search.append(product_url)
-                else:
-                    print(f"상품명: {product_name}, URL 없음 (item: {item}).")
-            else: # item이 딕셔너리가 아니면 어떤 형태인지 출력
-                print(f"경고: 예상치 못한 상품 아이템 형식. 타입: {type(item)}, 값: {item}")
+        for item in product_items: # 이제 item은 진짜 딕셔너리가 됨!
+            # 이전처럼 isinstance 체크 필요 없이 바로 딕셔너리처럼 접근
+            product_name = item.get('productName', '이름 없음')
+            product_url = item.get('productUrl') 
+            if product_url:
+                print(f"상품명: {product_name}, URL: {product_url}")
+                product_urls_from_search.append(product_url)
+            else:
+                print(f"상품명: {product_name}, URL 없음.")
 
 
         if not product_urls_from_search:
