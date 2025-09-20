@@ -9,7 +9,7 @@ from urllib.parse import urlencode, quote_plus
 import re
 import sys
 
-# 쿠팡 API 키 환경변수
+# 쿠팡 API 키 환경변수에서 불러옴
 ACCESS_KEY = os.environ.get('COUPANG_ACCESS_KEY')
 SECRET_KEY = os.environ.get('COUPANG_SECRET_KEY')
 
@@ -40,6 +40,7 @@ def call_coupang_api(method, api_path, query_params=None, body=None):
     resp.raise_for_status()
     return resp.json()
 
+# <<<<<<<<<<<<<<<< 함수 이름 통일! search_products >>>>>>>>>>>>>>>>>>
 def search_products(keyword, page=1, limit=10):
     api_path = "/v2/providers/affiliate_open_api/apis/openapi/products/search"
     params = {"keyword": keyword, "limit": limit, "offset": (page-1)*limit}
@@ -51,9 +52,11 @@ def create_html(product):
     img = product.get('productImage', 'https://via.placeholder.com/400x300.png?text=No+Image')
     price = product.get('productPrice', 0)
 
+    # 후기 개수 추출 (없으면 '후기보기'로)
     review_count = product.get('reviewCount')
     review_text = f"후기 {review_count}개" if review_count is not None else "후기보기"
 
+    # 파일명으로 사용할 수 없는 문자 제거 및 공백 대체
     safe_name = re.sub(r'[\\/*?:"<>|]', '', name).replace(' ', '_')[:50].strip('_')
     if not safe_name:
         safe_name = f"product_{hash(name + url) % 1000000}"
@@ -61,7 +64,7 @@ def create_html(product):
     filename = f"{safe_name}.html"
     disclosure = "이 포스팅은 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다."
 
-    html = f"""
+    html_content = f"""
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -69,7 +72,7 @@ def create_html(product):
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>{name}</title>
 <style>
-  body {{ font-family: Arial,sans-serif; max-width: 800px; margin: auto; padding: 20px; background: #f9f9f9; color:#333; }}
+  body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 800px; margin: auto; padding: 20px; background: #f4f7f6; color:#333; }}
   h1 {{ text-align:center; color:#2c3e50; margin-bottom:25px; font-size:2.2em; }}
   .product-img {{ text-align:center; margin-bottom:20px; }}
   .product-img img {{ max-width: 100%; border-radius: 8px; cursor:pointer; border:1px solid #eee; }}
@@ -106,11 +109,12 @@ def create_html(product):
 </html>
 """
     with open(filename, 'w', encoding='utf-8') as f:
-        f.write(html)
+        f.write(html_content)
     return filename
 
+# 메인 실행 로직
 if __name__ == "__main__":
-    SEARCH_KEYWORDS_LIST = [
+    SEARCH_KEYWORDS_LIST = [ # <<< 네가 준 길고 긴 키워드 리스트!
         "노트북", "캠핑용품", "아이폰15", "무선 이어폰", "게이밍 마우스",
         "에어프라이어", "로봇청소기", "캡슐커피머신", "전기 주전자", "토스터기",
         "믹서기", "제습기", "가습기", "선풍기", "에어컨", "온수매트",
@@ -137,79 +141,81 @@ if __name__ == "__main__":
         "책", "소설", "에세이", "자기계발서", "아동 도서", "만화책", "잡지",
         "연필", "볼펜", "노트", "다이어리", "형광펜", "지우개", "파일", "클립"
     ]
+    API_CALL_LIMIT_PER_PAGE = 10 # 한 번의 API 호출당 가져올 상품 최대 개수
+    TOTAL_PRODUCTS_TO_GENERATE = 30 # 최종 목표: 총 생성할 HTML 파일 개수
+    MAX_PAGES_PER_KEYWORD = 3 # 하나의 키워드당 최대 검색할 페이지 수 (30개 채울때까지)
+    
+    all_products_to_generate = [] # 수집된 모든 상품을 저장할 리스트
+    keywords_attempted_set = set() # 이미 시도한 키워드를 저장하여 중복 방지
 
-    API_CALL_LIMIT_PER_PAGE = 10
-    TOTAL_PRODUCTS_TO_GENERATE = 30
-    MAX_PAGES_PER_KEYWORD = 3
-    all_products_to_generate = []
-    keywords_attempted = set()
-
-    while len(all_products_to_generate) < TOTAL_PRODUCTS_TO_GENERATE and len(keywords_attempted) < len(SEARCH_KEYWORDS_LIST) * MAX_PAGES_PER_KEYWORD:
+    # 목표 개수만큼 상품을 모을 때까지 반복
+    while len(all_products_to_generate) < TOTAL_PRODUCTS_TO_GENERATE and \
+          len(keywords_attempted_set) < len(SEARCH_KEYWORDS_LIST) * MAX_PAGES_PER_KEYWORD: # 무한 루프 방지용 안전 장치
+        
         selected_keyword = random.choice(SEARCH_KEYWORDS_LIST)
-        if selected_keyword in keywords_attempted:
+        if selected_keyword in keywords_attempted_set: # 이미 시도한 키워드면 건너뛰고 다음 키워드 선택
             continue
+        
         print(f"\n랜덤 키워드 선택: '{selected_keyword}'")
-        keywords_attempted.add(selected_keyword)
-        current_page = 1
-        products_found_for_keyword = []
+        keywords_attempted_set.add(selected_keyword) # 시도한 키워드 세트에 추가
 
-        while len(products_found_for_keyword) < API_CALL_LIMIT_PER_PAGE * MAX_PAGES_PER_KEYWORD:
-            print(f"'{selected_keyword}' 상품 검색 시도 (Page {current_page})...")
+        # 선택된 키워드로 여러 페이지를 검색하여 상품 수집
+        for page_num in range(1, MAX_PAGES_PER_KEYWORD + 1):
+            if len(all_products_to_generate) >= TOTAL_PRODUCTS_TO_GENERATE:
+                break # 이미 목표 개수를 채웠으면 키워드/페이지 루프 중단
+            
+            print(f"'{selected_keyword}' 상품 검색 시도 (페이지 {page_num})...")
+            
             try:
-                search_results = search_products_api(selected_keyword, page=current_page, limit=API_CALL_LIMIT_PER_PAGE)
-                if search_results and search_results.get('data') and search_results['data'].get('productData'):
-                    products_on_page = search_results['data']['productData']
-                    if len(products_on_page) > 0:
-                        print(f"'{selected_keyword}' 키워드 (Page {current_page})에서 {len(products_on_page)}개 상품 발견!")
-                        for product in products_on_page:
-                            if len(all_products_to_generate) < TOTAL_PRODUCTS_TO_GENERATE:
-                                all_products_to_generate.append(product)
-                            else:
-                                break
-                        if len(products_on_page) < API_CALL_LIMIT_PER_PAGE or len(all_products_to_generate) >= TOTAL_PRODUCTS_TO_GENERATE:
-                            break
-                        current_page += 1
+                # <<<<<<<<<<<<<<<< 여기가 'search_products_api' 에서 'search_products'로 바뀐 부분! >>>>>>>>>>>>>>>>>>
+                search_results = search_products(selected_keyword, page=page_num, limit=API_CALL_LIMIT_PER_PAGE)
+                
+                # Debug 로그 (필요시 주석 해제)
+                # print(f"\n--- API 응답 (DEBUG) - 키워드: '{selected_keyword}' (페이지 {page_num}) ---")
+                # print(json.dumps(search_results, indent=4, ensure_ascii=False))
+                # print("-----------------------------------------------------------------------\n")
+                
+                products_on_current_page = search_results.get('data', {}).get('productData', [])
+                
+                if not products_on_current_page:
+                    print(f"'{selected_keyword}' 키워드 (페이지 {page_num})에 더 이상 상품이 없습니다. 다음 키워드로 이동.")
+                    break # 현재 키워드에 더 이상 상품이 없으면 다음 키워드로
+                
+                for product_item in products_on_current_page:
+                    if len(all_products_to_generate) < TOTAL_PRODUCTS_TO_GENERATE:
+                        all_products_to_generate.append(product_item)
                     else:
-                        print(f"'{selected_keyword}' 키워드 (Page {current_page})에서 productData가 비어있습니다. 다음 키워드로 이동.")
-                        break
-                else:
-                    print(f"'{selected_keyword}' 키워드 (Page {current_page})로 상품을 찾지 못했습니다. 'data' 또는 'productData' 키 없음.")
+                        break # 목표 개수를 채웠으면 상품 추가 중단
+                        
+                if len(products_on_current_page) < API_CALL_LIMIT_PER_PAGE:
+                    # 현재 페이지 상품 수가 요청 limit보다 적으면, 이 키워드에 더 이상 상품이 없다고 판단
                     break
-            except requests.exceptions.HTTPError as http_err:
-                print(f"HTTP 오류 발생 ({selected_keyword}, Page {current_page}): {http_err.response.status_code} - {http_err.response.text}")
-                break
-            except Exception as e:
-                print(f"API 호출 중 예기치 않은 오류 발생 ({selected_keyword}, Page {current_page}): {e}")
-                break
-        if len(all_products_to_generate) >= TOTAL_PRODUCTS_TO_GENERATE:
-            print(f"목표 상품 개수({TOTAL_PRODUCTS_TO_GENERATE}개) 달성!")
-            break
 
-    if len(all_products_to_generate) < TOTAL_PRODUCTS_TO_GENERATE:
-        print(f"최대 시도 후 {len(all_products_to_generate)}개만 상품을 확보했습니다. 목표({TOTAL_PRODUCTS_TO_GENERATE}개) 미달.")
-    generated_html_files = []
-    print(f"\n--- {len(all_products_to_generate)}개 HTML 페이지 생성 중 ---")
-    if all_products_to_generate:
-        for item in all_products_to_generate:
-            product_name = item.get('productName', '이름 없음')
-            partner_url = item.get('productUrl')
-            product_image = item.get('productImage', '')
-            product_price = item.get('productPrice', 0)
-            if partner_url:
-                product_info_for_html = {
-                    "productName": product_name,
-                    "partnerUrl": partner_url,
-                    "productImage": product_image,
-                    "productPrice": product_price
-                }
-                html_file = create_html_page(product_info_for_html)
-                generated_html_files.append(html_file)
-                print(f"-> '{html_file}' 생성 완료")
-            else:
-                print(f"상품명: {product_name}, 파트너스 URL 없음. HTML 생성 건너뜀.")
-    else:
-        print("검색된 상품이 없습니다.")
-    if generated_html_files:
-        print(f"\n총 {len(generated_html_files)}개의 HTML 파일이 생성되었습니다.")
-    else:
-        print("\n생성된 HTML 파일이 없습니다.")
+            except requests.exceptions.HTTPError as http_err:
+                print(f"HTTP 오류 ({selected_keyword}, 페이지 {page_num}): {http_err.response.status_code} - {http_err.response.text}", file=sys.stderr)
+                break # HTTP 오류 발생 시 이 키워드는 포기
+            except Exception as e:
+                print(f"API 호출 중 예기치 않은 오류 ({selected_keyword}, 페이지 {page_num}): {e}", file=sys.stderr)
+                break # 다른 오류 발생 시 이 키워드는 포기
+        
+        if len(all_products_to_generate) >= TOTAL_PRODUCTS_TO_GENERATE:
+            print(f"최종 목표 상품 개수({TOTAL_PRODUCTS_TO_GENERATE}개) 달성!")
+            break # 전체 목표 달성 시 모든 루프 종료
+
+    # 상품 수집 결과 처리
+    if not all_products_to_generate:
+        print("최대 시도 후에도 상품 데이터를 하나도 확보하지 못했습니다. 키워드, API 키, 네트워크 상태 등을 확인하세요.", file=sys.stderr)
+        sys.exit(1) # 상품이 하나도 없으면 스크립트 종료
+
+    print(f"\n총 {len(all_products_to_generate)}개 상품으로 HTML 파일 생성 중...")
+    generated_html_files_count = 0
+    for product_data in all_products_to_generate:
+        try:
+            created_filename = create_html(product_data)
+            print(f"-> '{created_filename}' 생성 완료")
+            generated_html_files_count += 1
+        except Exception as e:
+            print(f"HTML 파일 생성 실패 (상품: {product_data.get('productName', '불명')}) : {e}", file=sys.stderr)
+
+    print(f"\n총 {generated_html_files_count}개의 HTML 파일이 성공적으로 생성되었습니다.")
+    print("이제 GitHub Actions 워크플로우를 실행하여 웹사이트에 반영하세요! 🎉")
