@@ -23,6 +23,7 @@ DOMAIN = "https://api-gateway.coupang.com"
 # 사이트맵 관련 설정
 SITEMAP_PATH = 'sitemap.xml'
 SITE_BASE_URL = 'https://rkskqdl-a11y.github.io/' # 너의 깃허브 페이지 기본 URL
+SITEMAP_NAMESPACE = "http://www.sitemaps.org/schemas/sitemap/0.9" # 사이트맵 네임스페이스 정의
 
 # HMAC 서명 생성 함수
 def generate_hmac(method, url_for_hmac, secret_key, access_key):
@@ -202,20 +203,28 @@ def create_html(product):
     return filename
 
 # --- 사이트맵 자동 업데이트 관련 함수들 ---
+# XML 네임스페이스를 ElementTree에 등록
+ET.register_namespace('', SITEMAP_NAMESPACE)
+
 def load_sitemap():
     try:
+        # 네임스페이스를 ElementTree가 인식하도록 파싱
         tree = ET.parse(SITEMAP_PATH)
         root = tree.getroot()
-    except FileNotFoundError:
-        # 파일 없으면 새롭게 생성
-        root = ET.Element('urlset', xmlns="http://www.sitemaps.org/schemas/sitemap/0.9")
+        # root 태그의 xmlns 속성이 정확한지 확인 (ns0: 방지)
+        if root.tag != '{' + SITEMAP_NAMESPACE + '}urlset':
+             # 네임스페이스가 다르면 새로 만듬 (안정성 강화)
+            raise ET.ParseError("Sitemap root element has wrong namespace.")
+    except (FileNotFoundError, ET.ParseError):
+        # 파일이 없거나 파싱 에러나면 새로운 urlset 루트 태그 생성
+        root = ET.Element('urlset', attrib={'xmlns': SITEMAP_NAMESPACE})
         tree = ET.ElementTree(root)
     return tree, root
 
 def url_exists_in_sitemap(root_element, target_url):
-    # XML 네임스페이스를 고려하여 정확하게 탐색
-    for url_elem in root_element.findall('{http://www.sitemaps.org/schemas/sitemap/0.9}url'):
-        loc_elem = url_elem.find('{http://www.sitemaps.org/schemas/sitemap/0.9}loc')
+    # ElementTree의 find/findall은 네임스페이스를 직접 지정해야 함
+    for url_elem in root_element.findall('{' + SITEMAP_NAMESPACE + '}url'):
+        loc_elem = url_elem.find('{' + SITEMAP_NAMESPACE + '}loc')
         if loc_elem is not None and loc_elem.text == target_url:
             return True
     return False
@@ -226,24 +235,26 @@ def add_url_to_sitemap(root_element, filename):
     if url_exists_in_sitemap(root_element, full_url):
         return False  # 이미 사이트맵에 있으면 추가 안 함
     
-    url_elem = ET.SubElement(root_element, 'url')
+    # 네임스페이스를 지정해서 SubElement 생성
+    url_elem = ET.SubElement(root_element, '{' + SITEMAP_NAMESPACE + '}url')
     
-    loc = ET.SubElement(url_elem, 'loc')
+    loc = ET.SubElement(url_elem, '{' + SITEMAP_NAMESPACE + '}loc')
     loc.text = full_url
     
-    lastmod = ET.SubElement(url_elem, 'lastmod')
+    lastmod = ET.SubElement(url_elem, '{' + SITEMAP_NAMESPACE + '}lastmod')
     lastmod.text = datetime.now().strftime('%Y-%m-%d') # 오늘 날짜로 업데이트
     
-    changefreq = ET.SubElement(url_elem, 'changefreq')
+    changefreq = ET.SubElement(url_elem, '{' + SITEMAP_NAMESPACE + '}changefreq')
     changefreq.text = 'daily' # 매일 바뀔 수 있다고 알림
     
-    priority = ET.SubElement(url_elem, 'priority')
+    priority = ET.SubElement(url_elem, '{' + SITEMAP_NAMESPACE + '}priority')
     priority.text = '0.8' # 우선순위 (메인 페이지보다 낮게)
     
     return True # 새로 추가했으면 True 반환
 
 def save_sitemap(tree_element):
     # UTF-8 인코딩으로 XML 선언 포함하여 저장 (파일 손상 방지)
+    # default_namespace가 설정되어 있기 때문에 ns0: 없이 깔끔하게 저장될 것임
     tree_element.write(SITEMAP_PATH, encoding='utf-8', xml_declaration=True)
 
 # --- 메인 실행 로직 ---
@@ -355,7 +366,7 @@ if __name__ == "__main__":
         if add_url_to_sitemap(sitemap_root, fname):
             sitemap_added_count += 1
     save_sitemap(sitemap_tree)
-    print(f"\n[사이트맵] 새로 추가된 URL {sitemap_added_count}개 반영 완료!")
+    print(f"\n[사이트맵] 새로 추가된 URL {sitemap_added_count}개 반영 완료! (파일: {SITEMAP_PATH})")
 
     print(f"\n총 {generated_html_files_count}개의 HTML 파일이 성공적으로 생성되었습니다.")
-    print("이제 GitHub Actions 워크플로우를 실행하여 웹사이트에 반영하세요! 🎉")
+    print("이제 GitHub Actions 워크플로우를 실행하세요! 🎉 (sitemap.xml도 자동으로 업데이트 됩니다!)")
