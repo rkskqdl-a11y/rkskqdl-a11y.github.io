@@ -55,7 +55,7 @@ def call_coupang_partners_api(method, api_path, query_params=None, body_payload=
     response.raise_for_status()
     return response.json()
 
-def search_products_api(keyword, page=1, limit=50): # limit 기본값 50으로 변경 (API 최대)
+def search_products_api(keyword, page=1, limit=50):
     api_path = "/v2/providers/affiliate_open_api/apis/openapi/products/search"
     query_params = {
         "keyword": keyword,
@@ -71,10 +71,8 @@ def create_html_page(product_info):
     product_image = product_info['productImage']
     product_price = product_info['productPrice']
     
-    # 대가성 문구 (쿠팡 가이드라인 준수)
     disclosure = "이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다."
 
-    # 파일명으로 사용할 수 없는 문자 제거 및 공백 대체
     safe_product_name = re.sub(r'[\\/*?:"<>|]', '', product_name)
     safe_product_name = safe_product_name.replace(' ', '_')
     filename_base = safe_product_name[:50].strip('_')
@@ -135,6 +133,8 @@ def create_html_page(product_info):
 
 # -------- 메인 함수 --------
 if __name__ == "__main__":
+    MAX_KEYWORD_RETRIES = 5 # <<<<<<<< 최대 5번까지 다른 키워드로 재시도
+    
     try:
         SEARCH_KEYWORDS_LIST = [
             "노트북", "캠핑용품", "아이폰15", "무선 이어폰", "게이밍 마우스",
@@ -164,16 +164,35 @@ if __name__ == "__main__":
             "연필", "볼펜", "노트", "다이어리", "형광펜", "지우개", "파일", "클립"
         ]
         
-        selected_keyword = random.choice(SEARCH_KEYWORDS_LIST)
-        FETCH_PRODUCT_LIMIT = 30 # <<<<<<<< 여기 30으로 바꿨어!!!!!!
+        selected_keyword = None
+        search_results = None
+        retries = 0
 
-        print(f"랜덤 키워드 선택: '{selected_keyword}'")
-        print(f"'{selected_keyword}' 상품 검색 시도...")
-        
-        search_results = search_products_api(selected_keyword, limit=FETCH_PRODUCT_LIMIT)
-        
+        while retries < MAX_KEYWORD_RETRIES: # <<<<<<<< 키워드 재시도 로직 시작!
+            selected_keyword = random.choice(SEARCH_KEYWORDS_LIST)
+            print(f"랜덤 키워드 선택: '{selected_keyword}' (시도 {retries+1}/{MAX_KEYWORD_RETRIES})")
+            print(f"'{selected_keyword}' 상품 검색 시도...")
+            
+            try:
+                search_results = search_products_api(selected_keyword, limit=30) # <<<<< 여기 30으로 바꿨어!
+                if search_results and search_results.get('data') and search_results['data'].get('productData'):
+                    print(f"'{selected_keyword}' 키워드로 {len(search_results['data']['productData'])}개 상품 발견!")
+                    break # 상품을 찾았으니 루프 종료
+            except requests.exceptions.HTTPError as http_err:
+                print(f"HTTP 오류 발생 ({selected_keyword}): {http_err.response.status_code} - {http_err.response.text}")
+            except Exception as e:
+                print(f"API 호출 중 예기치 않은 오류 발생 ({selected_keyword}): {e}")
+
+            retries += 1
+            print(f"'{selected_keyword}' 키워드로 상품을 찾지 못했습니다. 다른 키워드로 재시도합니다.")
+            
+            if retries >= MAX_KEYWORD_RETRIES:
+                print(f"최대 재시도 횟수({MAX_KEYWORD_RETRIES}회)를 초과했습니다. 상품 생성을 중단합니다.")
+                exit(0) # 재시도 모두 실패 시 정상 종료
+
+
         if not search_results or not search_results.get('data') or not search_results['data'].get('productData'):
-            print(f"'{selected_keyword}' 검색 결과 없음. 또는 데이터 구조 문제.")
+            print(f"최종적으로 상품 검색 결과를 찾지 못했습니다.")
             exit(0)
 
         product_items = search_results['data']['productData'] 
