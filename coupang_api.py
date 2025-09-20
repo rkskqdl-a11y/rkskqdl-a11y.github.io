@@ -56,12 +56,12 @@ def call_coupang_partners_api(method, api_path, query_params=None, body_payload=
     return response.json()
 
 # -------- 상품 검색 API 호출 함수 --------
-# limit을 50으로 고정! (이 함수 안 limit 값은 호출 시 재정의되므로 일단은 이렇게 유지)
+# limit을 50으로 고정 (이 함수 안 limit 값은 호출 시 재정의됨)
 def search_products_api(keyword, page=1, limit=50): 
     api_path = "/v2/providers/affiliate_open_api/apis/openapi/products/search"
     query_params = {
         "keyword": keyword,
-        "limit": limit, # <<<<<< 이 limit이 `FETCH_PRODUCT_LIMIT` 값을 따라감
+        "limit": limit,
         "offset": (page-1)*limit
     }
     return call_coupang_partners_api("GET", api_path, query_params=query_params)
@@ -136,7 +136,7 @@ def create_html_page(product_info):
 # -------- 메인 함수 --------
 if __name__ == "__main__":
     MAX_KEYWORD_RETRIES = 5
-    FETCH_PRODUCT_LIMIT = 5 # <<<<<<<<<<<<<<<< 최종적으로 5개로 고정 (제발 허용되길!)
+    FETCH_PRODUCT_LIMIT = 10 # <<<<<<<<<<<<<<<< 여기를 10으로 바꿨다!!!!
     
     try:
         SEARCH_KEYWORDS_LIST = [
