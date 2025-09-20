@@ -7,7 +7,7 @@ from time import gmtime, strftime
 import random
 from urllib.parse import urlencode, quote_plus
 from datetime import datetime
-import re # <<<<< 정규식 모듈 추가 (파일명으로 쓸 수 없는 문자 제거용)
+import re
 
 # 쿠팡 API 키는 깃허브 Secrets에서 가져옴
 ACCESS_KEY = os.environ.get('COUPANG_ACCESS_KEY')
@@ -55,7 +55,7 @@ def call_coupang_partners_api(method, api_path, query_params=None, body_payload=
     response.raise_for_status()
     return response.json()
 
-def search_products_api(keyword, page=1, limit=50):
+def search_products_api(keyword, page=1, limit=50): # limit 기본값 50으로 변경 (API 최대)
     api_path = "/v2/providers/affiliate_open_api/apis/openapi/products/search"
     query_params = {
         "keyword": keyword,
@@ -75,14 +75,13 @@ def create_html_page(product_info):
     disclosure = "이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다."
 
     # 파일명으로 사용할 수 없는 문자 제거 및 공백 대체
-    # 파일명은 너무 길지 않게, 상품명 일부를 잘라서 사용
-    safe_product_name = re.sub(r'[\\/*?:"<>|]', '', product_name) # 특수문자 제거
-    safe_product_name = safe_product_name.replace(' ', '_') # 공백을 밑줄로 대체
-    filename_base = safe_product_name[:50].strip('_') # 앞 50자만 사용 (너무 길지 않게)
-    if not filename_base: # 파일명이 비어있는 경우 대비
-        filename_base = "product_" + str(hash(product_name + partner_url))[:8] # 해시값으로 고유 파일명
+    safe_product_name = re.sub(r'[\\/*?:"<>|]', '', product_name)
+    safe_product_name = safe_product_name.replace(' ', '_')
+    filename_base = safe_product_name[:50].strip('_')
+    if not filename_base:
+        filename_base = "product_" + str(hash(product_name + partner_url))[:8]
 
-    html_filename = f"{filename_base}.html" # .html 확장자 붙이기
+    html_filename = f"{filename_base}.html"
 
     html_content = f"""
 <!DOCTYPE html>
@@ -129,12 +128,10 @@ def create_html_page(product_info):
 </body>
 </html>
 """
-    # 깃허브 리포지토리에 파일 생성 (액션 환경 내)
-    # 실제로는 이 파일을 깃허브 레포에 푸시하는 과정이 필요함 (다음 단계에서 GitHub Actions로)
     with open(html_filename, 'w', encoding='utf-8') as f:
         f.write(html_content)
     
-    return html_filename # 생성된 파일 이름 반환
+    return html_filename
 
 # -------- 메인 함수 --------
 if __name__ == "__main__":
@@ -168,7 +165,7 @@ if __name__ == "__main__":
         ]
         
         selected_keyword = random.choice(SEARCH_KEYWORDS_LIST)
-        FETCH_PRODUCT_LIMIT = 2 # <<<<< 테스트니까 2개! (나중에 30개로 바꿀거임!)
+        FETCH_PRODUCT_LIMIT = 30 # <<<<<<<< 여기 30으로 바꿨어!!!!!!
 
         print(f"랜덤 키워드 선택: '{selected_keyword}'")
         print(f"'{selected_keyword}' 상품 검색 시도...")
@@ -181,9 +178,9 @@ if __name__ == "__main__":
 
         product_items = search_results['data']['productData'] 
         
-        generated_html_files = [] # 생성된 HTML 파일 목록 저장
+        generated_html_files = []
         
-        print("\n--- HTML 페이지 생성 중 ---")
+        print(f"\n--- {len(product_items)}개 HTML 페이지 생성 중 ---")
         if product_items:
             for item in product_items:
                 product_name = item.get('productName', '이름 없음')
@@ -208,7 +205,6 @@ if __name__ == "__main__":
         
         if generated_html_files:
             print(f"\n총 {len(generated_html_files)}개의 HTML 파일이 생성되었습니다.")
-            # 여기서 generated_html_files를 다음 단계(sitemap 업데이트, git push)로 넘겨줄 수 있음
         else:
             print("\n생성된 HTML 파일이 없습니다.")
 
