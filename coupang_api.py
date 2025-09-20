@@ -17,7 +17,6 @@ if not ACCESS_KEY or not SECRET_KEY:
 
 DOMAIN = "https://api-gateway.coupang.com"
 
-# 쿠팡 파트너스 공식 문서에 있는 HMAC 서명 생성 함수 그대로 사용
 def generateHmac(method, url_for_hmac, secretKey, accessKey):
     path, *query = url_for_hmac.split("?")
     datetimeGMT = strftime('%y%m%d', gmtime()) + 'T' + strftime('%H%M%S', gmtime()) + 'Z'
@@ -29,7 +28,6 @@ def generateHmac(method, url_for_hmac, secretKey, accessKey):
 
     return "CEA algorithm=HmacSHA256, access-key={}, signed-date={}, signature={}".format(accessKey, datetimeGMT, signature)
 
-# 모든 쿠팡 파트너스 API 호출에 사용될 통합 함수
 def call_coupang_partners_api(method, api_path, query_params=None, body_payload=None):
     
     url_for_hmac_sign = api_path
@@ -54,17 +52,15 @@ def call_coupang_partners_api(method, api_path, query_params=None, body_payload=
     response.raise_for_status()
     return response.json()
 
-# -------- 상품 검색 API 호출 함수 --------
 def search_products_api(keyword, page=1, limit=50):
     api_path = "/v2/providers/affiliate_open_api/apis/openapi/products/search"
     query_params = {
         "keyword": keyword,
         "limit": limit,
-        "offset": (page - 1) * limit
+        "offset": (page-1)*limit
     }
     return call_coupang_partners_api("GET", api_path, query_params=query_params)
 
-# -------- 딥링크 생성 API 호출 함수 --------
 def create_deeplinks_api(coupang_urls_list):
     api_path = "/v2/providers/affiliate_open_api/apis/openapi/v1/deeplink"
     body_payload = { 
@@ -72,8 +68,6 @@ def create_deeplinks_api(coupang_urls_list):
     }
     return call_coupang_partners_api("POST", api_path, body_payload=body_payload)
 
-
-# -------- 메인 함수 --------
 if __name__ == "__main__":
     try:
         SEARCH_KEYWORDS_LIST = [
@@ -112,23 +106,15 @@ if __name__ == "__main__":
         
         search_results = search_products_api(selected_keyword, limit=FETCH_PRODUCT_LIMIT)
         
-        # <<<<<<<<<<<<  응답 전문 출력은 이제 디버깅용으로 놔둬  >>>>>>>>>>>>>
-        # print("\n--- 상품 검색 API 원본 응답 데이터 (DEBUG) ---")
-        # print(json.dumps(search_results, indent=4, ensure_ascii=False)) # 보기 좋게 출력
-        # print("---------------------------------------------------\n")
-
-
         if not search_results or not search_results.get('data') or not search_results['data'].get('productData'):
             print(f"'{selected_keyword}' 검색 결과 없음. 또는 데이터 구조 문제.")
             exit(0)
 
-        # <<<<<<<<<<<<  이 부분이 핵심 변경! productData 리스트를 정확히 가져옴  >>>>>>>>>>>>>
         product_items = search_results['data']['productData'] 
         
         product_urls_from_search = []
         print("\n--- 검색된 상품 정보 ---")
-        for item in product_items: # 이제 item은 진짜 딕셔너리가 됨!
-            # 이전처럼 isinstance 체크 필요 없이 바로 딕셔너리처럼 접근
+        for item in product_items:
             product_name = item.get('productName', '이름 없음')
             product_url = item.get('productUrl') 
             if product_url:
@@ -146,8 +132,14 @@ if __name__ == "__main__":
         print(f"\n검색된 상품 ({len(product_urls_from_search)}개)으로 딥링크 생성 시도...")
         deeplink_response = create_deeplinks_api(product_urls_from_search)
         
+        # <<<<<<<<<<<<  여기가 새로 추가된 핵심 부분! 딥링크 응답 전문 출력!  >>>>>>>>>>>>>
+        print("\n--- 딥링크 생성 API 원본 응답 데이터 (DEBUG) ---")
+        print(json.dumps(deeplink_response, indent=4, ensure_ascii=False)) # 보기 좋게 출력
+        print("---------------------------------------------------\n")
+        
+        
         print("\n--- 생성된 딥링크 ---")
-        if deeplink_response and deeplink_response.get('data'):
+        if deeplink_response and deeplink_response.get('data'): # 여기 'data' 키 확인은 이전과 동일
             for link_data in deeplink_response['data']:
                 original_url = link_data.get('originalUrl')
                 shorten_url = link_data.get('shortenUrl')
@@ -158,7 +150,7 @@ if __name__ == "__main__":
 
     except requests.exceptions.HTTPError as http_err:
         print(f"HTTP 오류 발생: {http_err.response.status_code} - {http_err.response.text}")
-        print(f"응답 본문: {http_err.response.text}") # 오류 본문 상세 출력
+        print(f"응답 본문: {http_err.response.text}")
         raise
     except Exception as e:
         print(f"API 호출 중 예기치 않은 오류 발생: {e}")
