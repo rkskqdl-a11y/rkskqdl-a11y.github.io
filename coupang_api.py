@@ -168,30 +168,44 @@ if __name__ == "__main__":
         search_results = None
         retries = 0
 
-        while retries < MAX_KEYWORD_RETRIES: # <<<<<<<< 키워드 재시도 로직 시작!
+        while retries < MAX_KEYWORD_RETRIES:
             selected_keyword = random.choice(SEARCH_KEYWORDS_LIST)
             print(f"랜덤 키워드 선택: '{selected_keyword}' (시도 {retries+1}/{MAX_KEYWORD_RETRIES})")
             print(f"'{selected_keyword}' 상품 검색 시도...")
             
             try:
-                search_results = search_products_api(selected_keyword, limit=30) # <<<<< 여기 30으로 바꿨어!
+                search_results = search_products_api(selected_keyword, limit=30)
+                
+                # <<<<<<<<<<<<  여기서 API 원본 응답 전부 출력!  >>>>>>>>>>>>>
+                print(f"\n--- 상품 검색 API 원본 응답 (DEBUG) - 키워드: '{selected_keyword}' ---")
+                print(json.dumps(search_results, indent=4, ensure_ascii=False)) # 보기 좋게 출력
+                print("-----------------------------------------------------------------------\n")
+                
                 if search_results and search_results.get('data') and search_results['data'].get('productData'):
-                    print(f"'{selected_keyword}' 키워드로 {len(search_results['data']['productData'])}개 상품 발견!")
-                    break # 상품을 찾았으니 루프 종료
+                    if len(search_results['data']['productData']) > 0: # 상품 리스트가 비어있지 않다면 성공!
+                        print(f"'{selected_keyword}' 키워드로 {len(search_results['data']['productData'])}개 상품 발견!")
+                        break # 상품을 찾았으니 루프 종료
+                    else:
+                        print(f"'{selected_keyword}' 키워드로 상품은 찾았으나, productData가 비어있습니다.")
+                else:
+                    print(f"'{selected_keyword}' 키워드로 상품을 찾지 못했습니다. 'data' 또는 'productData' 키 없음.")
+
             except requests.exceptions.HTTPError as http_err:
                 print(f"HTTP 오류 발생 ({selected_keyword}): {http_err.response.status_code} - {http_err.response.text}")
+                # HTTP 에러가 발생해도 다른 키워드로 재시도하도록 `break` 하지 않음
             except Exception as e:
                 print(f"API 호출 중 예기치 않은 오류 발생 ({selected_keyword}): {e}")
+                # 예기치 않은 오류도 다른 키워드로 재시도하도록 `break` 하지 않음
 
             retries += 1
-            print(f"'{selected_keyword}' 키워드로 상품을 찾지 못했습니다. 다른 키워드로 재시도합니다.")
+            print(f"다른 키워드로 재시도합니다.")
             
             if retries >= MAX_KEYWORD_RETRIES:
                 print(f"최대 재시도 횟수({MAX_KEYWORD_RETRIES}회)를 초과했습니다. 상품 생성을 중단합니다.")
                 exit(0) # 재시도 모두 실패 시 정상 종료
 
 
-        if not search_results or not search_results.get('data') or not search_results['data'].get('productData'):
+        if not search_results or not search_results.get('data') or not search_results['data'].get('productData') or len(search_results['data']['productData']) == 0:
             print(f"최종적으로 상품 검색 결과를 찾지 못했습니다.")
             exit(0)
 
@@ -218,7 +232,7 @@ if __name__ == "__main__":
                     generated_html_files.append(html_file)
                     print(f"-> '{html_file}' 생성 완료")
                 else:
-                    print(f"상품명: {product_name}, 파트너스 URL 없음. HTML 생성 건너뜀.")
+                    print(f"상품명: {product_name}, 파트너스 URL 없음. HTML 생성 건너뜜.")
         else:
             print("검색된 상품이 없습니다.")
         
