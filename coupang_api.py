@@ -25,6 +25,10 @@ SITEMAP_PATH = 'sitemap.xml'
 SITE_BASE_URL = 'https://rkskqdl-a11y.github.io/' # 너의 깃허브 페이지 기본 URL
 SITEMAP_NAMESPACE = "http://www.sitemaps.org/schemas/sitemap/0.9" # 사이트맵 네임스페이스 정의
 
+# XML 네임스페이스를 ElementTree에 미리 등록 (이게 ns0: 방지 핵심!)
+# 빈 문자열('')을 기본 네임스페이스로 등록해서 xmlns="...." 형태를 유지
+ET.register_namespace('', SITEMAP_NAMESPACE)
+
 # HMAC 서명 생성 함수
 def generate_hmac(method, url_for_hmac, secret_key, access_key):
     path, *query = url_for_hmac.split("?")
@@ -203,21 +207,21 @@ def create_html(product):
     return filename
 
 # --- 사이트맵 자동 업데이트 관련 함수들 ---
-# XML 네임스페이스를 ElementTree에 등록
-ET.register_namespace('', SITEMAP_NAMESPACE)
+# ET.register_namespace는 이미 위에 선언했음
 
 def load_sitemap():
     try:
-        # 네임스페이스를 ElementTree가 인식하도록 파싱
+        # 파일이 존재하면 파싱
         tree = ET.parse(SITEMAP_PATH)
         root = tree.getroot()
-        # root 태그의 xmlns 속성이 정확한지 확인 (ns0: 방지)
+        # 루트 태그의 네임스페이스가 일치하는지 확인
         if root.tag != '{' + SITEMAP_NAMESPACE + '}urlset':
-             # 네임스페이스가 다르면 새로 만듬 (안정성 강화)
+            # 네임스페이스가 다르면 유효하지 않으므로 새로 생성
             raise ET.ParseError("Sitemap root element has wrong namespace.")
     except (FileNotFoundError, ET.ParseError):
-        # 파일이 없거나 파싱 에러나면 새로운 urlset 루트 태그 생성
-        root = ET.Element('urlset', attrib={'xmlns': SITEMAP_NAMESPACE})
+        # 파일이 없거나 파싱 에러(XML 형식 오류 포함) 발생 시 새로운 urlset 루트 태그 생성
+        # attrib에 xmlns를 직접 추가하지 않음. register_namespace가 처리하도록 함.
+        root = ET.Element('{' + SITEMAP_NAMESPACE + '}urlset') 
         tree = ET.ElementTree(root)
     return tree, root
 
@@ -254,7 +258,9 @@ def add_url_to_sitemap(root_element, filename):
 
 def save_sitemap(tree_element):
     # UTF-8 인코딩으로 XML 선언 포함하여 저장 (파일 손상 방지)
-    # default_namespace가 설정되어 있기 때문에 ns0: 없이 깔끔하게 저장될 것임
+    # ElementTree.write는 ET.register_namespace에 등록된 기본 네임스페이스를 사용하여 xmlns를 추가
+    # 따라서 root = ET.Element('{' + SITEMAP_NAMESPACE + '}urlset') 형태로 생성하면
+    # write 시 xmlns가 중복되지 않고 올바르게 추가됨.
     tree_element.write(SITEMAP_PATH, encoding='utf-8', xml_declaration=True)
 
 # --- 메인 실행 로직 ---
@@ -369,4 +375,4 @@ if __name__ == "__main__":
     print(f"\n[사이트맵] 새로 추가된 URL {sitemap_added_count}개 반영 완료! (파일: {SITEMAP_PATH})")
 
     print(f"\n총 {generated_html_files_count}개의 HTML 파일이 성공적으로 생성되었습니다.")
-    print("이제 GitHub Actions 워크플로우를 실행하세요! 🎉 (sitemap.xml도 자동으로 업데이트 됩니다!)")
+    print("이제 GitHub Actions 워크플로우를 실행하여 웹사이트에 반영하세요! 🎉 (sitemap.xml도 자동으로 업데이트 됩니다!)")
