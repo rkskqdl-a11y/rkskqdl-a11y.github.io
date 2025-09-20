@@ -3,7 +3,7 @@ name: Coupang Partners API 자동 실행
 on:
   workflow_dispatch: # 깃허브에서 직접 'Run workflow' 버튼 눌러서 실행 가능
   schedule:
-    - cron: '0 0 * * *' # UTC 기준으로 매일 자정(새벽 9시)에 실행됨 (한국 시간)
+    - cron: '0 0 * * *' # UTC 기준으로 매일 자정(오전 9시)에 실행됨 (한국 시간 KST = UTC+9)
 
 jobs:
   run-api-script:
@@ -25,7 +25,7 @@ jobs:
 
     - name: 쿠팡 API 스크립트 실행
       env: # 아까 Secrets에 저장한 쿠팡 키를 가져와서 코드에 넣어줘
-        COUPANG_ACCESS_KEY: ${{ c801a28c-0fe4-4c56-a582-30095af6c0ee }}
-        COUPANG_SECRET_KEY: ${{ 201818d4435475d09a9c93d4d92486eb753b0df2 }}
+        COUPANG_ACCESS_KEY: ${{ secrets.COUPANG_ACCESS_KEY }}
+        COUPANG_SECRET_KEY: ${{ secrets.COUPANG_SECRET_KEY }}
       run: |
         python coupang_api.py
