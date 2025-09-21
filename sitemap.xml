@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- ⭐ 니 기존 웹사이트/상품 페이지들 (이제 sitemap_products.xml이 됨) 지도 -->
+  <sitemap>
+    <loc>https://rkskqdl-a11y.github.io/sitemap_products.xml</loc>
+    <lastmod>{{ "now" | date: "%Y-%m-%dT%H:%M:%S%z" }}</lastmod> 
+  </sitemap>
+  
+  <!-- ⭐ content-manager 레포에서 생성될 새 광고 페이지들 지도 -->
+  <sitemap>
+    <loc>https://rkskqdl-a11y.github.io/content-manager/sitemap.xml</loc>
+    <lastmod>{{ "now" | date: "%Y-%m-%dT%H:%M:%S%z" }}</lastmod>
+  </sitemap>
+  
+  <!-- ⭐ 혹시 니가 이미 가지고 있는 sitemap_main.xml이 따로 있다면 여기에 추가해! -->
+  <!-- 니가 가지고 있는 sitemap_main.xml의 내용에 따라 노출 원하지 않는 페이지는 빼줘야 해. -->
+  <!-- <sitemap> -->
+  <!--   <loc>https://rkskqdl-a11y.github.io/sitemap_main.xml</loc> -->
+  <!--   <lastmod>{{ "now" | date: "%Y-%m-%dT%H:%M:%S%z" }}</lastmod> -->
+  <!-- </sitemap> -->
+
+</sitemapindex>
