@@ -211,22 +211,32 @@ def create_html(product):
 
 def load_sitemap_doc():
     try:
-        # minidom으로 XML 파싱 시 네임스페이스 처리 (훨씬 안정적)
-        with open(SITEMAP_PATH, 'r', encoding='utf-8') as f:
-            xml_string = f.read()
+        # 파일을 바이너리 모드(rb)로 읽어서 BOM과 공백 처리
+        with open(SITEMAP_PATH, 'rb') as f:
+            raw_xml_content = f.read()
+        
+        # BOM(Byte Order Mark)과 맨 앞 공백 제거 후 UTF-8로 디코딩
+        # lstrip(b'\xef\xbb\xbf')는 UTF-8 BOM을 제거. strip()은 맨 앞뒤 공백 제거.
+        xml_string = raw_xml_content.lstrip(b'\xef\xbb\xbf').strip().decode('utf-8')
+
+        # 빈 문자열이면 새로운 XML 문서로 처리 (파일이 비었을 때)
+        if not xml_string:
+            raise ValueError("Sitemap file is empty or corrupted.")
+
         dom = minidom.parseString(xml_string)
+        
         # root element가 urlset이고 올바른 네임스페이스인지 확인
         if dom.documentElement.tagName != 'urlset' or \
            dom.documentElement.getAttribute('xmlns') != SITEMAP_NAMESPACE:
             raise ValueError("Sitemap root element or namespace is invalid.")
+            
     except (FileNotFoundError, ValueError, ET.ParseError):
         # 파일 없거나 에러나면 새로 문서 생성
         dom = minidom.Document()
         urlset = dom.createElement('urlset')
-        urlset.setAttribute('xmlns', SITEMAP_NAMESPACE)
+        urlset.setAttribute('xmlns', SITEMAP_NAMESPACE) # xmlns 속성을 여기서만 딱! 설정
         dom.appendChild(urlset)
     return dom
-
 def url_exists_in_sitemap_doc(dom_doc, target_url):
     url_elements = dom_doc.getElementsByTagName('url')
     for url_elem in url_elements:
@@ -266,9 +276,17 @@ def add_url_to_sitemap_doc(dom_doc, filename):
     return True
 
 def save_sitemap_doc(dom_doc):
-    # toprettyxml 사용해서 깔끔하게 들여쓰기해서 저장 (xml_declaration=True는 자동으로 붙음)
+    # toprettyxml 사용해서 깔끔하게 들여쓰기하고, encoding은 나중에 수동 처리
+    pretty_xml_as_bytes = dom_doc.toprettyxml(indent="  ", encoding="utf-8")
+    
+    # 바이트 스트링을 UTF-8로 디코딩 후 앞뒤 공백 제거 및 파일에 쓰기
+    # BOM을 수동으로 제거해줘야 한다면 (b'\xef\xbb\xbf') 이런 식으로 해야 하지만
+    # toprettyxml이 utf-8로 인코딩한 결과는 보통 BOM을 포함하지 않음
+    # 그래도 혹시 모르니 lstrip()으로 빈 공간만 제거
+    pretty_xml_as_string = pretty_xml_as_bytes.decode('utf-8').lstrip() # 맨 앞 공백 제거
+
     with open(SITEMAP_PATH, 'w', encoding='utf-8') as f:
-        f.write(dom_doc.toprettyxml(indent="  ", encoding="utf-8").decode('utf-8'))
+        f.write(pretty_xml_as_string)
 
 
 # --- 메인 실행 로직 ---
