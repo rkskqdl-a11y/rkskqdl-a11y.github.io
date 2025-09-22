@@ -1,1 +1,21 @@
 
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- ⭐ 1. 방금 만든 니 전기포트 등 상품 페이지 지도를 여기에 연결해! -->
+  <sitemap>
+    <loc>https://rkskqdl-a11y.github.io/sitemap_kettles.xml</loc>
+    <lastmod>2025-09-22T12:35:00+00:00</lastmod> 
+  </sitemap>
+  
+  <!-- ⭐ 2. 니가 이미 가지고 있던, 다른 사이트맵들을 묶어둔 지도를 여기에 연결해! (sitemap_products.xml) -->
+  <sitemap>
+    <loc>https://rkskqdl-a11y.github.io/sitemap_products.xml</loc>
+    <lastmod>2025-09-22T12:35:00+00:00</lastmod> 
+  </sitemap>
+  
+  <!-- ⭐ 3. sitemap_main.xml이 있다면 이 지도를 여기에 연결해! -->
+  <sitemap>
+    <loc>https://rkskqdl-a11y.github.io/sitemap_main.xml</loc>
+    <lastmod>2025-09-22T12:35:00+00:00</lastmod>
+  </sitemap>
+</sitemapindex>
