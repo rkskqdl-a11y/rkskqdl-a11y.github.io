@@ -1,22 +1,63 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- ⭐ 니 기존 웹사이트/상품 페이지들 (이제 sitemap_products.xml이 됨) 지도 -->
-  <sitemap>
-    <loc>https://rkskqdl-a11y.github.io/sitemap_products.xml</loc>
-    <lastmod>{{ "now" | date: "%Y-%m-%dT%H:%M:%S%z" }}</lastmod> 
-  </sitemap>
-  
-  <!-- ⭐ content-manager 레포에서 생성될 새 광고 페이지들 지도 -->
-  <sitemap>
-    <loc>https://rkskqdl-a11y.github.io/content-manager/sitemap.xml</loc>
-    <lastmod>{{ "now" | date: "%Y-%m-%dT%H:%M:%S%z" }}</lastmod>
-  </sitemap>
-  
-  <!-- ⭐ 혹시 니가 이미 가지고 있는 sitemap_main.xml이 따로 있다면 여기에 추가해! -->
-  <!-- 니가 가지고 있는 sitemap_main.xml의 내용에 따라 노출 원하지 않는 페이지는 빼줘야 해. -->
-  <!-- <sitemap> -->
-  <!--   <loc>https://rkskqdl-a11y.github.io/sitemap_main.xml</loc> -->
-  <!--   <lastmod>{{ "now" | date: "%Y-%m-%dT%H:%M:%S%z" }}</lastmod> -->
-  <!-- </sitemap> -->
-
-</sitemapindex>
+<?xml version="1.0" encoding="utf-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://rkskqdl-a11y.github.io/필립스_3000_시리즈_전기포트.html</loc>
+    <lastmod>2025-09-22</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://rkskqdl-a11y.github.io/더포트_무선_전기포트,_스탠무선포트1304.html</loc>
+    <lastmod>2025-09-22</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://rkskqdl-a11y.github.io/5세대_FULL스텐_더블레이어_전기포트_전기_주전자,_독일_프리미엄_전기포트.html</loc>
+    <lastmod>2025-09-22</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://rkskqdl-a11y.github.io/키친플라워_초고속_가열_스텐_304_알파전기주전자.html</loc>
+    <lastmod>2025-09-22</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://rkskqdl-a11y.github.io/다룸_온도조절_멜로우_전기포트_보온_커피포트_1L,_퓨어_바닐라.html</loc>
+    <lastmod>2025-09-22</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://rkskqdl-a11y.github.io/키친아트_쏘렐_글라스_무선_전기주전자.html</loc>
+    <lastmod>2025-09-22</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://rkskqdl-a11y.github.io/대웅_모닝컴_온도조절_보온_전기_티포트,_DWM-1995CY.html</loc>
+    <lastmod>2025-09-22</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://rkskqdl-a11y.github.io/테팔_전기커피포트_모닝_블랙_1.7L.html</loc>
+    <lastmod>2025-09-22</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://rkskqdl-a11y.github.io/에버튼하우스_코모도_무선_전기포트,_EHGF-K911A.html</loc>
+    <lastmod>2025-09-22</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://rkskqdl-a11y.github.io/키친아트_렉스_전기주전자_1.2L.html</loc>
+    <lastmod>2025-09-22</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+</urlset>
