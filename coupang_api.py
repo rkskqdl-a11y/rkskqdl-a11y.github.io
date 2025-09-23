@@ -22,7 +22,7 @@ if not ACCESS_KEY or not SECRET_KEY:
 DOMAIN = "https://api-gateway.coupang.com"
 
 # 사이트맵 관련 설정
-SITEMAP_PATH = 'sitemap.xml'
+SITEMAP_PATH = 'sitemap_coupang_products.xml'
 SITE_BASE_URL = 'https://rkskqdl-a11y.github.io/' # 너의 깃허브 페이지 기본 URL
 SITEMAP_NAMESPACE = "http://www.sitemaps.org/schemas/sitemap/0.9" # 사이트맵 네임스페이스 정의
 
@@ -287,7 +287,6 @@ def save_sitemap_doc(dom_doc):
 
     with open(SITEMAP_PATH, 'w', encoding='utf-8') as f:
         f.write(pretty_xml_as_string)
-
 
 # --- 메인 실행 로직 ---
 if __name__ == "__main__":
