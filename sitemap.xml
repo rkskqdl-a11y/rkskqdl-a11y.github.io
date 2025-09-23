@@ -1,21 +1,57 @@
-
-<?xml version="1.0" encoding="UTF-8"?>
-<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- ⭐ 1. 방금 만든 니 전기포트 등 상품 페이지 지도를 여기에 연결해! -->
-  <sitemap>
-    <loc>https://rkskqdl-a11y.github.io/sitemap_kettles.xml</loc>
-    <lastmod>2025-09-22T12:35:00+00:00</lastmod> 
-  </sitemap>
-  
-  <!-- ⭐ 2. 니가 이미 가지고 있던, 다른 사이트맵들을 묶어둔 지도를 여기에 연결해! (sitemap_products.xml) -->
-  <sitemap>
-    <loc>https://rkskqdl-a11y.github.io/sitemap_products.xml</loc>
-    <lastmod>2025-09-22T12:35:00+00:00</lastmod> 
-  </sitemap>
-  
-  <!-- ⭐ 3. sitemap_main.xml이 있다면 이 지도를 여기에 연결해! -->
-  <sitemap>
-    <loc>https://rkskqdl-a11y.github.io/sitemap_main.xml</loc>
-    <lastmod>2025-09-22T12:35:00+00:00</lastmod>
-  </sitemap>
-</sitemapindex>
+<?xml version="1.0" encoding="utf-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://rkskqdl-a11y.github.io/로지텍_USB_유선_일반형_키보드.html</loc>
+    <lastmod>2025-09-23</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://rkskqdl-a11y.github.io/앱코_저소음_풀배열_멤브레인_108키_키보드.html</loc>
+    <lastmod>2025-09-23</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://rkskqdl-a11y.github.io/앱코_축교환_레인보우_무빙_LED_기계식_유선_일반형_키보드.html</loc>
+    <lastmod>2025-09-23</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://rkskqdl-a11y.github.io/앱코_저소음_멤브레인_87키_유선_텐키리스_키보드.html</loc>
+    <lastmod>2025-09-23</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://rkskqdl-a11y.github.io/앱코_저소음_멤브레인_키보드_유선_일반형.html</loc>
+    <lastmod>2025-09-23</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://rkskqdl-a11y.github.io/TGIC컴퓨터_TGC-K1200U_USB_유선_일반형_키보드.html</loc>
+    <lastmod>2025-09-23</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://rkskqdl-a11y.github.io/조이트론_게이밍_기계식_키보드.html</loc>
+    <lastmod>2025-09-23</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://rkskqdl-a11y.github.io/지클릭커_오피스프로_사일런스_M_RGB_무소음_방수_유선_키보드.html</loc>
+    <lastmod>2025-09-23</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://rkskqdl-a11y.github.io/지클릭커_G3_Plus_레인보우_LED_유선_일반형_키보드.html</loc>
+    <lastmod>2025-09-23</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+</urlset>
