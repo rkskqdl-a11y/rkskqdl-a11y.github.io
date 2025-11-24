@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- 쿠팡 상품 페이지 전용 사이트맵 -->
   <sitemap>
     <loc>https://rkskqdl-a11y.github.io/sitemap_coupang_products.xml</loc>
     <lastmod>2025-09-25T15:44:10+09:00</lastmod>
   </sitemap>
-
-  <!-- content-manager가 관리하는 페이지 사이트맵 -->
   <sitemap>
     <loc>https://rkskqdl-a11y.github.io/content-manager/sitemap.xml</loc>
     <lastmod>2025-09-25T15:44:10+09:00</lastmod>
