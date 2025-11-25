@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <sitemap>
-    <loc>https://rkskqdl-a11y.github.io/sitemap_coupang_products.xml</loc>
-    <lastmod>2025-09-25T15:44:10+09:00</lastmod>
-  </sitemap>
-  <sitemap>
-    <loc>https://rkskqdl-a11y.github.io/content-manager/sitemap.xml</loc>
-    <lastmod>2025-09-25T15:44:10+09:00</lastmod>
-  </sitemap>
-</sitemapindex>
+<urlset
+      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+<!-- 모든 하위 레포들이 삭제되었으므로, 이제는 rkskqdl-a11y.github.io 메인 페이지만 사이트맵에 포함합니다. -->
+
+<url>
+  <loc>https://rkskqdl-a11y.github.io/</loc>
+  <lastmod>2025-11-25T00:00:00+00:00</lastmod> <!-- <lastmod> 부분은 파일이 최종 업데이트된 현재 날짜로 변경해주세요. -->
+  <changefreq>weekly</changefreq> <!-- 페이지 업데이트 빈도에 따라 조절 (daily, weekly, monthly 등) -->
+  <priority>1.0</priority> <!-- 이 페이지의 중요도/우선순위 (0.0~1.0, 숫자가 높을수록 중요) -->
+</url>
+
+</urlset>
